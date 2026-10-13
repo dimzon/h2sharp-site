@@ -1,0 +1,9 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Dapper (planned) — H2Sharp</title><link rel="icon" type="image/svg+xml" href="../assets/favicon.svg"><link rel="stylesheet" href="../assets/site.css"></head><body>
+<header class="site-header"><div class="wrap"><a class="brand" href="../" style="text-decoration:none"><img src="../assets/logo.svg" alt="">H2Sharp <small>early development</small></a><nav class="main"><a href="../">Home</a><a href="../sql/">SQL</a><a href="./" class="active">.NET API</a><a href="../status/">Status</a></nav></div></header>
+<main class="wrap"><section class="block"><h2>Dapper <span class="badge plan">planned · future shape</span></h2><p class="sub">The first live consumer of the provider. The sample below sets the format of future recipes — <b>do not run</b> before phase 8.</p><pre class="mini"><code><span class="tok-c">// planned — works once H2Sharp.Data lands (phase 8)</span>
+<span class="tok-k">await using var</span> con = <span class="tok-k">new</span> H2Connection(<span class="tok-s">"Data Source=:memory:"</span>);
+<span class="tok-k">await</span> con.OpenAsync();
+<span class="tok-k">await</span> con.ExecuteAsync(<span class="tok-s">"CREATE TABLE test(id INT PRIMARY KEY, name VARCHAR)"</span>);
+<span class="tok-k">await</span> con.ExecuteAsync(<span class="tok-s">"INSERT INTO test VALUES(1,'Hi')"</span>);
+<span class="tok-k">var</span> rows = <span class="tok-k">await</span> con.QueryAsync&lt;Test&gt;(<span class="tok-s">"SELECT * FROM test"</span>);</code></pre></section></main>
+<footer><div class="wrap"><span>Recipe format is set — content lands after phase 8.</span><span style="margin-left:auto"><a href="./">← .NET API</a></span></div></footer></body></html>

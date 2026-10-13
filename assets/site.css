@@ -1,0 +1,133 @@
+/* H2Sharp site — own dark docs design. No frameworks. All links relative.
+   ------------------------------------------------------------------
+   ⚠ КОНТРАКТ РЕДИЗАЙНА:
+   - Переменные :root (--bg/--panel/--line/--ink/--muted/--accent/--accent2/
+     --amber/--green/--radius/--font/--mono) — ОБЩИЕ с assets/h2ref.css.
+     Переименуешь здесь — страницы sql/ref/* посыпятся следом.
+   - Высота шапки 62px (.site-header .wrap + top:62px в бургер-меню +
+     scroll-margin-top в h2ref.css) — менять все три места разом. */
+:root {
+  --bg: #0b1220;
+  --bg2: #0f172a;
+  --panel: #111c33;
+  --line: #1e2c4d;
+  --ink: #e6eefc;
+  --muted: #93a3c4;
+  --accent: #38bdf8;
+  --accent2: #22d3ee;
+  --amber: #fbbf24;
+  --green: #34d399;
+  --radius: 14px;
+  --font: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  --mono: "Cascadia Code", Consolas, "JetBrains Mono", Menlo, monospace;
+}
+* { box-sizing: border-box; }
+/* ⚠ smooth-скролл: любой JS со scrollIntoView будет АНИМИРОВАТЬСЯ — координаты
+   читать только после окончания анимации (или behavior:"instant"), иначе мимо. */
+html { scroll-behavior: smooth; }
+body {
+  margin: 0; font-family: var(--font); color: var(--ink);
+  background: radial-gradient(1100px 500px at 80% -10%, #164e63 0%, transparent 60%),
+              radial-gradient(900px 480px at 10% 0%, #1d2f5e 0%, transparent 55%), var(--bg);
+  line-height: 1.6;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 22px; }
+
+/* header */
+.site-header { position: sticky; top: 0; z-index: 20; backdrop-filter: blur(10px);
+  background: rgba(11, 18, 32, 0.82); border-bottom: 1px solid var(--line); }
+.site-header .wrap { display: flex; align-items: center; gap: 14px; height: 62px; }
+.brand { display: flex; align-items: center; gap: 10px; color: var(--ink); font-weight: 700; font-size: 19px; letter-spacing: -0.02em; }
+.brand img { width: 30px; height: 30px; }
+.brand small { font-weight: 400; color: var(--muted); font-size: 12.5px; border: 1px solid var(--line); padding: 2px 8px; border-radius: 999px; }
+nav.main { margin-left: auto; display: flex; gap: 18px; font-size: 14.5px; }
+nav.main a { color: var(--muted); }
+nav.main a:hover, nav.main a.active { color: var(--ink); }
+.burger { display: none; }
+/* ⚠ Мобильное меню БЕЗ JS: чекбокс #navtoggle должен идти ПЕРЕД nav.main
+   как сиблинг (селектор "~"). Спрячешь input в другой контейнер — меню не откроется. */
+@media (max-width: 760px) {
+  nav.main { display: none; }
+  .burger { display: block; margin-left: auto; }
+  #navtoggle:checked ~ nav.main { display: flex; flex-direction: column; position: absolute; top: 62px; right: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; }
+}
+
+/* hero */
+.hero { position: relative; overflow: hidden; border-bottom: 1px solid var(--line); }
+.hero .rails { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.5; pointer-events: none; }
+.hero .glow { position: absolute; width: 560px; height: 380px; right: -120px; top: -80px;
+  background: radial-gradient(closest-side, rgba(56,189,248,.35), transparent); filter: blur(10px); pointer-events: none; }
+.hero-grid { position: relative; display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 36px; padding: 36px 0 48px; align-items: center; }
+@media (max-width: 900px) { .hero-grid { grid-template-columns: 1fr; padding: 28px 0 36px; } }
+.eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted);
+  border: 1px solid var(--line); background: rgba(17,28,51,.7); padding: 5px 12px; border-radius: 999px; }
+.pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--amber); box-shadow: 0 0 0 0 rgba(251,191,36,.6); animation: pulse 2s infinite; }
+@keyframes pulse { 70% { box-shadow: 0 0 0 9px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
+h1 { font-size: clamp(34px, 5vw, 56px); line-height: 1.05; margin: 18px 0 12px; letter-spacing: -0.03em; }
+h1 .grad { background: linear-gradient(92deg, var(--accent), var(--accent2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.lead { color: var(--muted); font-size: 17.5px; max-width: 34em; }
+.cta { display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap; }
+.btn { display: inline-block; padding: 12px 20px; border-radius: 12px; font-weight: 650; border: 1px solid var(--line); color: var(--ink); background: rgba(17,28,51,.6); }
+.btn:hover { text-decoration: none; border-color: var(--accent); }
+.btn.primary { background: linear-gradient(92deg, #0ea5e9, #06b6d4); border: none; box-shadow: 0 8px 30px rgba(14,165,233,.35); }
+
+/* code window + css tabs.
+   ⚠ Табы БЕЗ JS: работают на связке input#tab-sql/#tab-cs + селектор "~".
+   Порядок в index.html КРИТИЧЕН: оба input должны идти ПЕРЕД .tabs и .pane-*
+   как сиблинги внутри .codewin. Переставишь/обернёшь в div — табы умрут молча. */
+.codewin { background: #0a0f1e; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; box-shadow: 0 24px 70px rgba(0,0,0,.45); }
+.codewin .tabs { display: flex; gap: 4px; padding: 10px 12px 0; border-bottom: 1px solid var(--line); font-size: 13.5px; }
+.codewin .tabs label { padding: 8px 14px; border-radius: 9px 9px 0 0; color: var(--muted); cursor: pointer; border: 1px solid transparent; border-bottom: none; }
+.codewin pre { margin: 0; padding: 18px; font-family: var(--mono); font-size: 13.6px; line-height: 1.65; overflow-x: auto; min-height: 220px; }
+.codewin .pane-sql, .codewin .pane-cs { display: none; }
+#tab-sql:checked ~ .pane-sql { display: block; }
+#tab-cs:checked ~ .pane-cs { display: block; }
+#tab-sql:checked ~ .tabs label[for="tab-sql"], #tab-cs:checked ~ .tabs label[for="tab-cs"] { color: var(--ink); background: #101b33; border-color: var(--line); }
+.tok-k { color: #7dd3fc; } .tok-s { color: #fcd34d; } .tok-c { color: #64748b; font-style: italic; } .tok-t { color: #5eead4; }
+/* typing caret on first line */
+.typeline::after { content: "▍"; color: var(--accent); animation: blink 1.1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .typeline::after, .pulse { animation: none; } }
+
+/* strips, chips, cards */
+.strip { display: flex; gap: 10px; flex-wrap: wrap; padding: 20px 0 4px; }
+.chip { font-family: var(--mono); font-size: 12.8px; color: var(--ink); border: 1px solid var(--line); background: rgba(17,28,51,.75); padding: 6px 12px; border-radius: 999px; }
+.chip b { color: var(--accent2); font-weight: 700; }
+section.block { padding: 44px 0 8px; }
+h2 { font-size: 27px; letter-spacing: -0.02em; margin: 0 0 6px; }
+.sub { color: var(--muted); margin: 0 0 20px; max-width: 60em; }
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+@media (max-width: 900px) { .grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }
+.card { background: linear-gradient(180deg, rgba(23,37,66,.85), rgba(13,22,40,.9)); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; transition: transform .15s, border-color .15s; }
+.card:hover { transform: translateY(-3px); border-color: var(--accent); }
+.card h3 { margin: 0 0 6px; font-size: 17px; }
+.card p { margin: 0 0 12px; color: var(--muted); font-size: 14.5px; }
+.card .go { font-size: 14px; font-weight: 650; }
+.badge { display: inline-block; font-size: 11.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; margin-left: 8px; vertical-align: middle; }
+.badge.ok { background: rgba(52,211,153,.15); color: var(--green); border: 1px solid rgba(52,211,153,.4); }
+.badge.plan { background: rgba(251,191,36,.13); color: var(--amber); border: 1px solid rgba(251,191,36,.4); }
+
+/* banner + provenance */
+.version-banner { border: 1px solid rgba(56,189,248,.45); background: linear-gradient(180deg, rgba(14,165,233,.16), rgba(14,165,233,.05));
+  border-radius: var(--radius); padding: 16px 18px; font-size: 14.5px; margin: 18px 0 26px; }
+.version-banner code { font-family: var(--mono); background: rgba(0,0,0,.35); padding: 1px 7px; border-radius: 7px; }
+
+/* timeline */
+.timeline { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-top: 16px; }
+@media (max-width: 900px) { .timeline { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 560px) { .timeline { grid-template-columns: 1fr 1fr; } }
+.phase { border: 1px solid var(--line); border-radius: 12px; padding: 12px; font-size: 13px; background: rgba(17,28,51,.55); }
+.phase b { display: block; font-size: 13.5px; margin-bottom: 2px; }
+.phase.done { border-color: rgba(52,211,153,.5); } .phase.now { border-color: rgba(56,189,248,.6); }
+.phase span { color: var(--muted); }
+
+/* two-col + footer */
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 800px) { .cols { grid-template-columns: 1fr; } }
+pre.mini { background: #0a0f1e; border: 1px solid var(--line); border-radius: 12px; padding: 16px; font-family: var(--mono); font-size: 13px; overflow-x: auto; }
+footer { margin-top: 56px; border-top: 1px solid var(--line); padding: 26px 0 40px; color: var(--muted); font-size: 13.5px; }
+footer .wrap { display: flex; gap: 18px; flex-wrap: wrap; align-items: center; }
+footer img { width: 22px; height: 22px; opacity: .8; }

@@ -1,0 +1,52 @@
+{
+  "stamp": "20261013-h2-2.5.252",
+  "fetchedAt": "2026-10-13T21:35:51.534740+00:00",
+  "h2Version": "2.5.252 (2026-09-23)",
+  "h2sharpPin": "27c51709fef687bc064f23c8dd495b566c69bb93",
+  "base": "https://www.h2database.com/html/",
+  "pages": [
+    {
+      "name": "commands",
+      "url": "https://www.h2database.com/html/commands.html",
+      "sha256": "e6a8bc3c3e355135aac875052901ce133e0b37d258e30563c837c437827b41a8",
+      "bytes": 369909
+    },
+    {
+      "name": "functions",
+      "url": "https://www.h2database.com/html/functions.html",
+      "sha256": "11494f4a4f0b09a8b6d8be654abca541cd29dbfd6917d9263946141b8d941c92",
+      "bytes": 280349
+    },
+    {
+      "name": "functions-aggregate",
+      "url": "https://www.h2database.com/html/functions-aggregate.html",
+      "sha256": "824dd991e3a9e1a4329bfe65188a0bfde5391cf53519a25ae8636dfbdb8c762d",
+      "bytes": 138546
+    },
+    {
+      "name": "functions-window",
+      "url": "https://www.h2database.com/html/functions-window.html",
+      "sha256": "fdaf1cd1475b96451d7d100a378423dafcc7998b4067642cc0536d119ad5541e",
+      "bytes": 33892
+    },
+    {
+      "name": "datatypes",
+      "url": "https://www.h2database.com/html/datatypes.html",
+      "sha256": "4568be7631f3d5d4bb10429d881075d5c843d13344b84be2e6f0d9fbab9bd938",
+      "bytes": 94898
+    },
+    {
+      "name": "grammar",
+      "url": "https://www.h2database.com/html/grammar.html",
+      "sha256": "1fb94b45eb865f77aa66e2b4e737660c5fac0490035abed7402e09f80d0c52b9",
+      "bytes": 355047
+    },
+    {
+      "name": "systemtables",
+      "url": "https://www.h2database.com/html/systemtables.html",
+      "sha256": "62aba1b47110340c400f51afaaa184545f4ae0dd0157a6e27cb9953425317ddd",
+      "bytes": 84003
+    }
+  ],
+  "ua": "H2Sharp-docs-mirror (+https://github.com/dimzon/h2sharp-site; SQL ref snapshot)"
+}

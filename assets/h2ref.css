@@ -1,0 +1,94 @@
+/* Styling for mirrored H2 reference content (.h2doc). Own dark theme, upstream class names.
+   Railroad diagrams: token pills + track sprites (© H2 Group, recolored for dark
+   theme by tools/recolor-sprites.py; originals in assets/h2img/orig/).
+   Green = non-standard syntax, red = compatibility-only.
+   ------------------------------------------------------------------
+   ⚠ КОНТРАКТ РЕДИЗАЙНА — не ломать без сверки со скриншотом SELECT:
+   DOM генерирует tools/build-site.py из замороженного снапшота raw/,
+   классы ячеек (ts/te/ls/le/ks/ke/d/c) менять нельзя — их рисует JS апстрима.
+   Переменные --line/--accent/--accent2/--ink/--muted/--mono берутся из
+   site.css (:root): переименование там роняет и эти страницы. */
+.wrap.wide { max-width: 1240px; }
+.h2doc { font-size: 15px; }
+.h2doc h1 { font-size: 34px; margin-top: 6px; }
+.h2doc h2 { font-size: 23px; margin-top: 34px; padding-top: 14px; border-top: 1px solid var(--line); }
+.h2doc h3 { font-size: 18px; margin-top: 26px; }
+/* ⚠ scroll-margin привязан к высоте липкой шапки (62px в site.css): поменяешь
+   шапку — поправь и здесь, иначе якоря #select будут уезжать под шапку. */
+.h2doc h2[id], .h2doc h3[id] { scroll-margin-top: 76px; }
+/* ⚠ h3[onclick] — хук для assets/ref.js (switchBnf): клик переключает диаграмму
+   в текстовый BNF (pre[name="bnf"]) и обратно. Уберёшь onclick/курсор — toggle умрёт. */
+.h2doc h3[onclick] { cursor: pointer; }
+.h2doc h3[onclick]:hover { color: var(--accent); }
+.h2doc h3[onclick]::after { content: " ⇄ BNF"; font-size: 12px; font-weight: 400; color: var(--muted); }
+.h2doc a { color: var(--accent); }
+.h2doc code, .h2doc pre { font-family: var(--mono); font-size: 13.5px; }
+.h2doc pre { background: #0a0f1e; border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; overflow-x: auto; }
+
+/* index of topics */
+.h2doc table.index { border: 0; margin: 8px 0; background: none; }
+.h2doc table.index td { border: 0; background: none; vertical-align: top; padding: 4px 22px 4px 0; }
+
+/* ⚠ КРИТИЧНО — геометрия диаграмм (было три бага подряд, см. историю):
+   1. margin у table.railroad ДОЛЖЕН быть 0: таблицы вложены друг в друга,
+      любой margin опускает вложенную таблицу внутри ячейки и треки ДВОЯТСЯ
+      (было: margin 4px → параллельные линии через 4px на каждом уровне).
+   2. padding у td ДОЛЖЕН быть 0 и БЕЗ background-position: угловые тайлы
+      (ls/le/ks/ke) стыкуются с треком сверху пиксель-в-пиксель; сдвиг фона
+      хотя бы на 3px открывает разрыв после скруглений.
+   3. background-size ПРИВЯЗАНЫ к размеру спрайтов: 32x1024 → 16px 512px,
+      div-d.png 2048x1024 → 1024px 512px. Поменяешь спрайт — пересчитай.
+   4. Пути url() — ОТНОСИТЕЛЬНО ЭТОГО ФАЙЛА (assets/ → h2img/, БЕЗ ../):
+      было ../h2img → 404 и диаграммы без треков вообще. */
+.h2doc table.railroad { border: 0; margin: 0; background: none; border-collapse: collapse; }
+.h2doc table.railroad td { border: 0; padding: 0; vertical-align: top; }
+.h2doc table.railroad td.ts, .h2doc table.railroad td.te,
+.h2doc table.railroad td.ls, .h2doc table.railroad td.le,
+.h2doc table.railroad td.ks, .h2doc table.railroad td.ke {
+  width: 16px; min-width: 16px; height: 24px; background-size: 16px 512px; background-repeat: repeat-y;
+}
+.h2doc table.railroad td.ts { background-image: url(h2img/div-ts.png); }
+.h2doc table.railroad td.te { background-image: url(h2img/div-te.png); }
+.h2doc table.railroad td.ls { background-image: url(h2img/div-ls.png); }
+.h2doc table.railroad td.le { background-image: url(h2img/div-le.png); }
+.h2doc table.railroad td.ks { background-image: url(h2img/div-ks.png); }
+.h2doc table.railroad td.ke { background-image: url(h2img/div-ke.png); }
+.h2doc table.railroad td.d {
+  min-width: 16px; min-height: 24px;
+  background-image: url(h2img/div-d.png); background-size: 1024px 512px; background-repeat: repeat;
+}
+/* ⚠ Высота пилюли влияет на точку входа трека: горизонтальная полоса тайла
+   проходит на ~8px от верха ячейки. Пилюля ~23-27px высотой — трек входит
+   примерно по центру. Сделаешь пилюли сильно выше — трек упрётся в их верх. */
+.h2doc code.c {
+  display: inline-block; border: 2px solid #3b587f; border-radius: .55em;
+  background: #13223d; padding: 1px 10px; font-family: var(--mono);
+  font-size: 13px; line-height: 1.45; color: var(--ink); white-space: nowrap;
+}
+.h2doc code.c a { color: var(--accent2); }
+/* non-standard (green) / compatibility-only (red) groups — как в эталоне H2:
+   ⚠ красятся ТОЛЬКО ободки токенов, БЕЗ боксов и заливок на группе.
+   Было: outline-бокс на весь div — не совпадало с оригиналом. */
+.h2doc div.ruleH2, .h2doc div.ruleCompat { outline: none; background: none; padding: 0; }
+.h2doc div.ruleH2 code.c { border-color: lightseagreen; }
+.h2doc div.ruleH2 code.c a { color: #5eead4; }
+.h2doc div.ruleCompat code.c { border-color: coral; background: rgba(240, 128, 128, .12); }
+.h2doc span.ruleH2 { color: #5eead4; }
+.h2doc span.ruleCompat { color: #fca5a5; }
+.h2doc .notranslate { font-family: var(--mono); font-size: 13.5px; }
+.h2doc .notranslate a { font-family: var(--mono); }
+
+/* BNF text view (toggled by switchBnf, replaces the diagram).
+   ⚠ По умолчанию СКРЫТ (в разметке стоит inline display:none): видимым его
+   делает только assets/ref.js по клику. Не ставь display:block в CSS —
+   иначе под каждой диаграммой будет дубль текстом. */
+.h2doc pre[name="bnf"] {
+  background: #0a0f1e; border: 1px solid var(--line); border-radius: 12px;
+  padding: 14px 16px; font-family: var(--mono); font-size: 13.5px;
+  white-space: pre-wrap; line-height: 1.7;
+}
+.h2doc pre[name="bnf"] a { color: var(--accent2); }
+
+@media (max-width: 700px) {
+  .h2doc table.index td { display: block; padding-right: 0; }
+}

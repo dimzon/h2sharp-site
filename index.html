@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>H2Sharp — H2 Database on .NET</title>
+<meta name="description" content="H2Sharp — an embeddable SQL engine for .NET, ported from H2 Database. Version-pinned SQL reference, future ADO.NET / Dapper / linq2db / EF Core API.">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="./" style="text-decoration:none"><img src="assets/logo.svg" alt="H2Sharp logo">H2Sharp <small>early development</small></a>
+    <input type="checkbox" id="navtoggle" hidden>
+    <label class="burger" for="navtoggle" aria-label="Menu">☰</label>
+    <nav class="main">
+      <a href="./" class="active">Home</a>
+      <a href="sql/">SQL</a>
+      <a href="dotnet/">.NET API</a>
+      <a href="status/">Status</a>
+      <a href="https://github.com/dimzon/h2sharp">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<div class="hero">
+  <img class="rails" src="assets/hero-rails.svg" alt="">
+  <div class="glow"></div>
+  <div class="wrap hero-grid">
+    <div>
+      <span class="eyebrow"><span class="pulse"></span>H2 Database port &nbsp;·&nbsp; embeddable SQL engine for .NET</span>
+      <h1>H2, now <span class="grad">on .NET</span></h1>
+      <p class="lead">H2Sharp brings the legendary Java H2 engine to C#. A file written by H2Sharp opens in the reference Java H2 — and vice versa. The SQL docs are pinned to the ported version, so they never drift after the original.</p>
+      <div class="cta">
+        <a class="btn primary" href="sql/">SQL documentation →</a>
+        <a class="btn" href="https://github.com/dimzon/h2sharp">GitHub project</a>
+        <a class="btn" href="status/">Port status</a>
+      </div>
+      <div class="strip">
+        <span class="chip">H2 <b>2.5.252</b> + pin <b>27c5170</b></span>
+        <span class="chip">© H2 Group · <b>MPL-2.0 / EPL-1.0</b></span>
+        <span class="chip"><b>MVStore</b> file-compat ✓</span>
+      </div>
+    </div>
+    <div class="codewin">
+      <input type="radio" name="tab" id="tab-sql" checked hidden>
+      <input type="radio" name="tab" id="tab-cs" hidden>
+      <div class="tabs"><label for="tab-sql">SQL — today</label><label for="tab-cs">C# — soon</label></div>
+      <pre class="pane-sql"><code><span class="tok-c">-- H2 mirror @27c5170, original: h2database.com</span>
+<span class="typeline"><span class="tok-k">SELECT</span> id, <span class="tok-k">COUNT</span>(*) <span class="tok-k">FROM</span> test</span>
+  <span class="tok-k">GROUP BY</span> id <span class="tok-k">HAVING</span> <span class="tok-k">COUNT</span>(*) &gt; <span class="tok-s">2</span>
+  <span class="tok-k">ORDER BY</span> <span class="tok-s">1</span> <span class="tok-k">NULLS LAST</span>;
+<span class="tok-k">MERGE INTO</span> test <span class="tok-k">KEY</span>(id) <span class="tok-k">VALUES</span>(<span class="tok-s">2</span>, <span class="tok-s">'World'</span>);
+<span class="tok-k">EXPLAIN</span> <span class="tok-k">SELECT</span> * <span class="tok-k">FROM</span> test <span class="tok-k">WHERE</span> id = <span class="tok-s">1</span>;</code></pre>
+      <pre class="pane-cs"><code><span class="tok-c">// phase 8 gate: Dapper smoke over IDbConnection</span>
+<span class="tok-k">await using var</span> con = <span class="tok-k">new</span> <span class="tok-t">H2Connection</span>(cs);
+<span class="tok-k">await</span> con.<span class="tok-t">OpenAsync</span>();
+<span class="tok-k">await</span> con.<span class="tok-t">ExecuteAsync</span>(<span class="tok-s">"CREATE TABLE test(id INT PRIMARY KEY, name VARCHAR)"</span>);
+<span class="tok-k">await</span> con.<span class="tok-t">ExecuteAsync</span>(<span class="tok-s">"INSERT INTO test VALUES(1,'Hi')"</span>);
+<span class="tok-k">var</span> rows = <span class="tok-k">await</span> con.<span class="tok-t">QueryAsync</span>&lt;<span class="tok-t">Test</span>&gt;(<span class="tok-s">"SELECT * FROM test"</span>);</code></pre>
+    </div>
+  </div>
+</div>
+
+<main class="wrap">
+  <section class="block">
+    <h2>Quickstart</h2>
+    <div class="cols">
+      <div><p class="sub">Install (placeholder — package ships with phase 8):</p>
+<pre class="mini"><code><span class="tok-c"># not published yet — name reserved</span>
+dotnet add package H2Sharp --prerelease</code></pre></div>
+      <div><p class="sub">What builds today — engine and tests:</p>
+<pre class="mini"><code>dotnet build H2Sharp.sln
+dotnet test</code></pre></div>
+    </div>
+    <div class="cols" style="margin-top:16px">
+      <div><p class="sub">Connecting — after phase 8 (shape of the future API):</p>
+<pre class="mini"><code><span class="tok-c">-- planned, do not run yet</span>
+Data Source=file:mydb;Mode=Embedded</code></pre></div>
+      <div><p class="sub">Docs by version — SQL snapshot pinned to the port:</p>
+<pre class="mini"><code><span class="tok-c">-- frozen mirror, see /sql/</span>
+H2 2.5.252 + pin 27c5170</code></pre></div>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>SQL reference, pinned to the ported version</h2>
+    <p class="sub">The original lives on h2database.com and moves on. We keep a snapshot at commit <code>27c5170</code> (H2 2.5.x, October 2026) in our own design — with a link to the original and H2 Group attribution. The only complete section of the site today.</p>
+    <div class="version-banner">Snapshot: H2 <code>2.5.252 (2026-09-23)</code> + H2Sharp pin <code>27c5170 (2026-10-06)</code> · Original: <a href="https://www.h2database.com/html/main.html">h2database.com</a> · <a href="https://github.com/h2database/h2database">upstream commit</a> · Pin delta — a <code>DROP ALL OBJECTS</code> fix for local temp tables; grammar matches.</div>
+    <div class="grid">
+      <div class="card"><h3>Commands <span class="badge ok">mirror</span></h3><p>SELECT, INSERT, UPDATE, DELETE, MERGE, DDL — the full command syntax.</p><a class="go" href="sql/#commands">Open →</a></div>
+      <div class="card"><h3>Functions <span class="badge ok">mirror</span></h3><p>Scalar, aggregate, and window functions with examples.</p><a class="go" href="sql/#functions">Open →</a></div>
+      <div class="card"><h3>Data Types <span class="badge ok">mirror</span></h3><p>Types, domains, literals, CAST, and formats.</p><a class="go" href="sql/#datatypes">Open →</a></div>
+      <div class="card"><h3>Grammar <span class="badge ok">mirror</span></h3><p>The full expression and predicate grammar.</p><a class="go" href="sql/#grammar">Open →</a></div>
+      <div class="card"><h3>System Tables <span class="badge ok">mirror</span></h3><p>INFORMATION_SCHEMA and system views.</p><a class="go" href="sql/#systemtables">Open →</a></div>
+      <div class="card"><h3>How it updates <span class="badge ok">pipeline</span></h3><p>Crawler + provenance.json: date, URLs, content SHAs.</p><a class="go" href="sql/">About the pipeline →</a></div>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>.NET API — the road ahead</h2>
+    <p class="sub">The port is in phases 1–2 of 10; the public API is still stabilizing. No invented signatures — every section is honestly marked <b>planned</b> with its ROADMAP readiness gate.</p>
+    <div class="grid">
+      <div class="card"><h3>Native API <span class="badge plan">planned</span></h3><p>Direct engine access after phases 5–6: Parser, Session, Database.</p><a class="go" href="dotnet/native.html">Stub →</a></div>
+      <div class="card"><h3>System.Data <span class="badge plan">planned</span></h3><p>Standard ADO.NET: H2Connection, H2Command, H2DataReader.</p><a class="go" href="dotnet/system-data.html">Stub →</a></div>
+      <div class="card"><h3>Dapper <span class="badge plan">planned</span></h3><p>First live consumer: open → create → insert → select.</p><a class="go" href="dotnet/dapper.html">Sample placeholder →</a></div>
+      <div class="card"><h3>linq2db <span class="badge plan">planned</span></h3><p>LINQ provider on top of the ADO.NET provider.</p><a class="go" href="dotnet/linq2db.html">Stub →</a></div>
+      <div class="card"><h3>EF Core <span class="badge plan">planned</span></h3><p>H2Sharp.EntityFrameworkCore: mappings, migrations, sequences.</p><a class="go" href="dotnet/efcore.html">Stub →</a></div>
+      <div class="card"><h3>Port status</h3><p>Phases 0–10: what is done / in progress / todo — from ROADMAP.</p><a class="go" href="status/">Open →</a></div>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>Where we are</h2>
+    <p class="sub">Phases from <code>docs/ROADMAP.md</code> in the main repo. Honestly: the engine is built bottom-up — MVStore is done, values and schema are next, the provider is phase eight.</p>
+    <div class="timeline">
+      <div class="phase done"><b>0 · Bootstrap</b><span>done — skeleton, CI, oracle</span></div>
+      <div class="phase now"><b>1 · Foundation</b><span>in progress — util, ParserUtil</span></div>
+      <div class="phase done"><b>2 · MVStore</b><span>done — file-compat ✓</span></div>
+      <div class="phase"><b>3 · Values</b><span>next — table/index core</span></div>
+      <div class="phase"><b>5–6 · SQL+Engine</b><span>todo — Parser, Session</span></div>
+      <div class="phase"><b>8–9 · Providers</b><span>todo — ADO.NET, EF</span></div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <img src="assets/logo-mono.svg" alt="">
+    <span>H2Sharp — a port of <a href="https://github.com/h2database/h2database">H2 Database</a> to .NET. SQL content © H2 Group, MPL-2.0 / EPL-1.0.</span>
+    <span style="margin-left:auto">Pin: <code>27c5170</code> · <a href="sql/">SQL</a> · <a href="status/">Status</a> · <a href="https://github.com/dimzon/h2sharp">GitHub</a></span>
+  </div>
+</footer>
+</body>
+</html>
