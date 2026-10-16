@@ -1,4 +1,43 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>System.Data (planned) — H2Sharp</title><link rel="icon" type="image/svg+xml" href="../assets/favicon.svg"><link rel="stylesheet" href="../assets/site.css"></head><body>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>System.Data — H2Sharp</title><link rel="icon" type="image/svg+xml" href="../assets/favicon.svg"><link rel="stylesheet" href="../assets/site.css"></head><body>
 <header class="site-header"><div class="wrap"><a class="brand" href="../" style="text-decoration:none"><img src="../assets/logo.svg" alt="">H2Sharp <small>early development</small></a><nav class="main"><a href="../">Home</a><a href="../sql/">SQL</a><a href="./" class="active">.NET API</a><a href="../status/">Status</a></nav></div></header>
-<main class="wrap"><section class="block"><h2>System.Data / ADO.NET <span class="badge plan">planned</span></h2><p class="sub">Standard provider: <code>H2Connection</code>, <code>H2Command</code>, <code>H2Parameter</code>, <code>H2DataReader</code>, <code>H2Transaction</code>, <code>H2Factory</code>, connection-string parser (<code>Data Source=…</code> and <code>jdbc:h2:…</code>), <code>GetSchema()</code> over INFORMATION_SCHEMA.</p><div class="version-banner">Readiness gate (phase 8): <code>DapperSmokeTests</code> — in-memory open → create → insert → update → select → delete over <code>IDbConnection</code>. Tests: <code>tests/H2Sharp.Data.Tests</code>.</div></section></main>
-<footer><div class="wrap"><span>This section arrives once the API stabilizes.</span><span style="margin-left:auto"><a href="./">← .NET API</a></span></div></footer></body></html>
+<main class="wrap"><section class="block">
+<h2>System.Data / ADO.NET <span class="badge ok">available</span></h2>
+<p class="sub">A standard ADO.NET provider in <code>H2Sharp.Data</code> (<code>System.Data.Common</code>). It is measured against the inherited <a href="https://github.com/rowanswim/AdoNet.Specification.Tests">AdoNet.Specification.Tests</a> conformance suite and by a green Dapper flow — not against itself.</p>
+
+<div class="version-banner">Gate (phase 8) — <b>closed</b>: <code>DapperSmokeTests</code> drives an in-memory database end to end over <code>IDbConnection</code> (open → create → insert → update → select → delete). Source: <code>src/H2Sharp/Data/</code>, tests: <code>tests/H2Sharp.Data.Tests/</code>.</div>
+
+<h3 id="types">Types</h3>
+<table class="ref">
+<tr><th>Type</th><th>Base</th><th>Notes</th></tr>
+<tr><td><code>H2Connection</code></td><td><code>DbConnection</code></td><td>Also exposes <code>CurrentDatabase</code> (the engine's <code>Database</code>) for engine-level work.</td></tr>
+<tr><td><code>H2Command</code></td><td><code>DbCommand</code></td><td><code>ExecuteNonQuery</code>, <code>ExecuteScalar</code>, <code>ExecuteReader</code>, <code>Prepare</code>, <code>Cancel</code>, <code>Parameters</code>.</td></tr>
+<tr><td><code>H2Parameter</code></td><td><code>DbParameter</code></td><td>Parameters travel beside the text — they are never concatenated into it.</td></tr>
+<tr><td><code>H2DataReader</code></td><td><code>DbDataReader</code></td><td>Full typed getter set, <code>GetBytes</code>/<code>GetChars</code>, <code>GetSchemaTable</code>.</td></tr>
+<tr><td><code>H2ConnectionStringBuilder</code></td><td><code>DbConnectionStringBuilder</code></td><td><code>DataSource</code>, <code>UserId</code>, <code>Password</code>, <code>ToH2ConnectionString()</code>.</td></tr>
+<tr><td><code>H2ProviderFactory</code></td><td><code>DbProviderFactory</code></td><td>Entry point for DI and for tooling: <code>H2ProviderFactory.Instance</code>.</td></tr>
+</table>
+
+<h3 id="connection-strings">Connection strings</h3>
+<p class="sub">Both spellings are accepted, because a caller will use whichever their code base already has. The <code>jdbc:h2:</code> prefix is stripped and not re-added, so <code>Data Source=mem:x</code> and <code>Data Source=jdbc:h2:mem:x</code> open the same database — the name itself is kept byte for byte, because the name decides which database is opened.</p>
+<pre class="mini"><code>Data Source=mem:mydb                       <span class="tok-c">// ADO.NET spelling</span>
+Data Source=jdbc:h2:mem:mydb              <span class="tok-c">// H2 spelling, same database</span>
+
+<span class="tok-k">new</span> H2ConnectionStringBuilder(<span class="tok-s">"jdbc:h2:mem:mydb"</span>).ToH2ConnectionString()</code></pre>
+
+<h3 id="di">Registration</h3>
+<pre class="mini"><code>services.AddDbConnectionFactory&lt;H2ProviderFactory&gt;(_ =&gt; <span class="tok-k">new</span> H2ProviderFactory());
+<span class="tok-c">// or construct directly:</span>
+<span class="tok-k">await using var</span> con = <span class="tok-k">new</span> H2Connection(<span class="tok-s">"jdbc:h2:mem:mydb"</span>);</code></pre>
+
+<h3 id="not-yet">Not implemented yet</h3>
+<p class="sub">Honest list — these throw <code>TODOException</code> or are absent, by design at this stage:</p>
+<ul>
+<li><b>Transactions</b> — <code>BeginTransaction</code> is not reachable: <code>H2Connection.BeginDbTransaction</code> throws <code>TODOException</code>. The <code>H2Transaction</code> type exists with <code>Commit</code>/<code>Rollback</code>/<code>IsolationLevel</code>, but nothing hands one out yet.</li>
+<li><code>ChangeDatabase</code> — throws <code>TODOException</code>.</li>
+<li><code>GetSchema()</code> over <code>INFORMATION_SCHEMA</code> — not there yet.</li>
+<li>No <code>DataAdapter</code> and no <code>CommandBuilder</code> — explicitly unsupported by design, use Dapper or read the reader. <code>CanCreateBatch</code> is <code>false</code>.</li>
+</ul>
+
+<p class="sub">See also <a href="dapper.html">Dapper</a> for the live end-to-end flow, and <a href="../status/">port status</a> for phases.</p>
+</section></main>
+<footer><div class="wrap"><span>H2Sharp · API in progress — signatures follow the port</span><span style="margin-left:auto"><a href="./">← .NET API</a></span></div></footer></body></html>

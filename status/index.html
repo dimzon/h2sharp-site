@@ -2,19 +2,45 @@
 <header class="site-header"><div class="wrap"><a class="brand" href="../" style="text-decoration:none"><img src="../assets/logo.svg" alt="">H2Sharp <small>early development</small></a><nav class="main"><a href="../">Home</a><a href="../sql/">SQL</a><a href="../dotnet/">.NET API</a><a href="./" class="active">Status</a></nav></div></header>
 <main class="wrap"><section class="block">
 <h2>Port status</h2>
-<p class="sub">Canon — <a href="https://github.com/dimzon/h2sharp/blob/main/docs/ROADMAP.md">docs/ROADMAP.md ↗</a> and <code>MIGRATION_STATUS.md</code> in the main repo. This is a snapshot as of the site build.</p>
+<p class="sub">Read from the repository itself — commit history and test projects — as of 2026-10-16. Canon is <a href="https://github.com/dimzon/h2sharp/blob/main/docs/ROADMAP.md">docs/ROADMAP.md ↗</a> and <code>MIGRATION_STATUS.md</code>, but note both now <b>lag the code</b>: the roadmap still lists phase 1 as in progress and the ADO.NET provider as todo.</p>
+
+<div class="version-banner"><b>What changed most recently:</b> the ADO.NET adapter came up with a green Dapper flow (in-memory open → create → insert → update → select → delete), followed by the inherited AdoNet.Specification.Tests suite — DUAL, CAST, connection, flexible reader.</div>
+
+<h3 id="phases">Phases</h3>
 <div class="timeline">
-<div class="phase done"><b>0 · Bootstrap</b><span>done</span></div>
-<div class="phase now"><b>1 · Foundation</b><span>in progress</span></div>
-<div class="phase done"><b>2 · MVStore</b><span>done, file-compat ✓</span></div>
-<div class="phase"><b>3 · Values+schema</b><span>next</span></div>
-<div class="phase"><b>4 · Expressions</b><span>todo</span></div>
-<div class="phase"><b>5 · Commands/SQL</b><span>todo</span></div>
-<div class="phase"><b>6 · Engine</b><span>todo</span></div>
-<div class="phase"><b>7 · Constraints</b><span>todo</span></div>
-<div class="phase"><b>8 · ADO.NET</b><span>todo, gate: Dapper</span></div>
+<div class="phase done"><b>0 · Bootstrap</b><span>done — skeleton, CI, oracle harness</span></div>
+<div class="phase done"><b>1 · Foundation</b><span>done — util, ErrorCode, messages</span></div>
+<div class="phase done"><b>2 · MVStore</b><span>done — file-compat both ways ✓</span></div>
+<div class="phase done"><b>3 · Values, schema</b><span>done — types, tables, indexes</span></div>
+<div class="phase done"><b>4 · Expressions</b><span>done — functions, aggregates</span></div>
+<div class="phase done"><b>5 · Commands/SQL</b><span>done — parser, SELECT/DML/DDL</span></div>
+<div class="phase done"><b>6 · Engine</b><span>done — database, session, plans</span></div>
+<div class="phase"><b>7 · Constraints, rights</b><span>todo</span></div>
+<div class="phase now"><b>8 · ADO.NET</b><span>green — Dapper gate closed, transactions open</span></div>
 <div class="phase"><b>9 · EF Core</b><span>todo</span></div>
-<div class="phase"><b>10 · Polish</b><span>todo</span></div>
-<div class="phase"><b>Reference pin</b><span><code>27c5170</code>, H2 2.5.x</span></div>
-</div></section></main>
+<div class="phase"><b>10 · Conformance, polish</b><span>todo</span></div>
+</div>
+
+<h3 id="sql">SQL that runs today</h3>
+<p class="sub">Each of these was landed as its own commit with a differential test against the reference JVM:</p>
+<table class="ref">
+<tr><th>Area</th><th>Works</th></tr>
+<tr><td>Queries</td><td>Flat <code>SELECT</code> end to end, <code>WHERE</code> as index conditions, <code>LIMIT</code>/<code>OFFSET</code>/<code>FETCH</code>, <code>ORDER BY</code> served from indexes, <code>DISTINCT</code></td></tr>
+<tr><td>Grouping</td><td><code>GROUP BY</code> / <code>HAVING</code> through grouped execution</td></tr>
+<tr><td>Aggregates</td><td><code>COUNT</code> (incl. <code>COUNT(*)</code>), <code>SUM</code>, <code>MIN</code>, <code>MAX</code> (with the index first-or-last shortcut), <code>AVG</code>, <code>STDDEV</code>/<code>VAR</code> (Welford), <code>ANY</code>/<code>EVERY</code>, <code>MEDIAN</code>, <code>ANY_VALUE</code>, <code>PERCENTILE_CONT</code>/<code>PERCENTILE_DISC</code> via <code>WITHIN GROUP</code>, <code>LISTAGG</code> (three spellings), distinct aggregates</td></tr>
+<tr><td>DML/DDL</td><td><code>CREATE TABLE</code>, <code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>, parameters kept out of the SQL text</td></tr>
+<tr><td>Expressions</td><td><code>DUAL</code>, <code>CAST</code>, NULL folding in <code>AND</code>/<code>OR</code> to UNKNOWN</td></tr>
+</table>
+
+<h3 id="open">Open work</h3>
+<ul>
+<li><b>Provider transactions</b> — <code>BeginTransaction</code> throws <code>TODOException</code>; the <code>H2Transaction</code> type exists but nothing hands one out.</li>
+<li><code>ChangeDatabase</code>, <code>GetSchema()</code> over <code>INFORMATION_SCHEMA</code>.</li>
+<li>Constraints and rights (phase 7), EF Core (9), the full conformance script suite (10).</li>
+<li>No <code>DataAdapter</code>/<code>CommandBuilder</code> — unsupported by design.</li>
+<li>Public native engine surface is not promised yet.</li>
+</ul>
+
+<div class="version-banner"><b>Reference pin:</b> <code>27c51709fef687bc064f23c8dd495b566c69bb93</code> — H2 2.5.x, unchanged, so the <a href="../sql/">SQL mirror</a> is still valid.</div>
+</section></main>
 <footer><div class="wrap"><span>Not product documentation — a working note.</span><span style="margin-left:auto"><a href="../">← Home</a></span></div></footer></body></html>

@@ -31,16 +31,17 @@
     <div>
       <span class="eyebrow"><span class="pulse"></span>H2 Database port &nbsp;·&nbsp; embeddable SQL engine for .NET</span>
       <h1>H2, now <span class="grad">on .NET</span></h1>
-      <p class="lead">H2Sharp brings the legendary Java H2 engine to C#. A file written by H2Sharp opens in the reference Java H2 — and vice versa. The SQL docs are pinned to the ported version, so they never drift after the original.</p>
+      <p class="lead">H2Sharp brings the legendary Java H2 engine to C#. It executes real SQL today — SELECT with WHERE, GROUP BY, ORDER BY, aggregates, DDL, DML — behind a standard ADO.NET provider that Dapper drives end to end. And a database file written by H2Sharp opens in the reference Java H2, and vice versa.</p>
       <div class="cta">
         <a class="btn primary" href="sql/">SQL documentation →</a>
-        <a class="btn" href="https://github.com/dimzon/h2sharp">GitHub project</a>
+        <a class="btn" href="dotnet/dapper.html">Dapper examples</a>
         <a class="btn" href="status/">Port status</a>
       </div>
       <div class="strip">
         <span class="chip">H2 <b>2.5.252</b> + pin <b>27c5170</b></span>
-        <span class="chip">© H2 Group · <b>MPL-2.0 / EPL-1.0</b></span>
+        <span class="chip"><b>ADO.NET</b> provider · Dapper gate ✓</span>
         <span class="chip"><b>MVStore</b> file-compat ✓</span>
+        <span class="chip">© H2 Group · <b>MPL-2.0 / EPL-1.0</b></span>
       </div>
     </div>
     <div class="codewin">
@@ -67,20 +68,21 @@
   <section class="block">
     <h2>Quickstart</h2>
     <div class="cols">
-      <div><p class="sub">Install (placeholder — package ships with phase 8):</p>
+      <div><p class="sub">A real query today, through Dapper over <code>IDbConnection</code>:</p>
+<pre class="mini"><code><span class="tok-k">using</span> H2Sharp.Data;
+
+<span class="tok-k">using</span> IDbConnection con = <span class="tok-k">new</span> H2Connection(<span class="tok-s">"jdbc:h2:mem:demo"</span>);
+con.Open();
+con.Execute(<span class="tok-s">"CREATE TABLE PERSON(ID INT PRIMARY KEY, NAME VARCHAR)"</span>);
+con.Execute(<span class="tok-s">"INSERT INTO PERSON VALUES(@Id, @Name)"</span>, <span class="tok-k">new</span> { Id = 1, Name = <span class="tok-s">"Ada"</span> });
+
+<span class="tok-k">var</span> rows = con.Query&lt;Person&gt;(<span class="tok-s">"SELECT * FROM PERSON"</span>);</code></pre></div>
+      <div><p class="sub">Build and test the port:</p>
+<pre class="mini"><code>dotnet build H2Sharp.sln
+dotnet test</code></pre>
+<p class="sub">NuGet ships with the provider phase:</p>
 <pre class="mini"><code><span class="tok-c"># not published yet — name reserved</span>
 dotnet add package H2Sharp --prerelease</code></pre></div>
-      <div><p class="sub">What builds today — engine and tests:</p>
-<pre class="mini"><code>dotnet build H2Sharp.sln
-dotnet test</code></pre></div>
-    </div>
-    <div class="cols" style="margin-top:16px">
-      <div><p class="sub">Connecting — after phase 8 (shape of the future API):</p>
-<pre class="mini"><code><span class="tok-c">-- planned, do not run yet</span>
-Data Source=file:mydb;Mode=Embedded</code></pre></div>
-      <div><p class="sub">Docs by version — SQL snapshot pinned to the port:</p>
-<pre class="mini"><code><span class="tok-c">-- frozen mirror, see /sql/</span>
-H2 2.5.252 + pin 27c5170</code></pre></div>
     </div>
   </section>
 
@@ -99,28 +101,28 @@ H2 2.5.252 + pin 27c5170</code></pre></div>
   </section>
 
   <section class="block">
-    <h2>.NET API — the road ahead</h2>
-    <p class="sub">The port is in phases 1–2 of 10; the public API is still stabilizing. No invented signatures — every section is honestly marked <b>planned</b> with its ROADMAP readiness gate.</p>
+    <h2>.NET API</h2>
+    <p class="sub">The ADO.NET layer works and is gated by an inherited conformance suite plus a green Dapper flow. The ORM layers come after it. No invented signatures — every section reflects what is in the repository.</p>
     <div class="grid">
-      <div class="card"><h3>Native API <span class="badge plan">planned</span></h3><p>Direct engine access after phases 5–6: Parser, Session, Database.</p><a class="go" href="dotnet/native.html">Stub →</a></div>
-      <div class="card"><h3>System.Data <span class="badge plan">planned</span></h3><p>Standard ADO.NET: H2Connection, H2Command, H2DataReader.</p><a class="go" href="dotnet/system-data.html">Stub →</a></div>
-      <div class="card"><h3>Dapper <span class="badge plan">planned</span></h3><p>First live consumer: open → create → insert → select.</p><a class="go" href="dotnet/dapper.html">Sample placeholder →</a></div>
+      <div class="card"><h3>System.Data <span class="badge ok">available</span></h3><p>H2Connection, H2Command, H2Parameter, H2DataReader, H2ProviderFactory. Transactions not yet.</p><a class="go" href="dotnet/system-data.html">Reference →</a></div>
+      <div class="card"><h3>Dapper <span class="badge ok">works today</span></h3><p>End-to-end over <code>IDbConnection</code>: open, create, insert, update, select, delete.</p><a class="go" href="dotnet/dapper.html">Examples →</a></div>
+      <div class="card"><h3>Native API <span class="badge plan">planned</span></h3><p>Direct engine access. The engine executes real queries now; a public surface is not promised yet.</p><a class="go" href="dotnet/native.html">Stub →</a></div>
       <div class="card"><h3>linq2db <span class="badge plan">planned</span></h3><p>LINQ provider on top of the ADO.NET provider.</p><a class="go" href="dotnet/linq2db.html">Stub →</a></div>
       <div class="card"><h3>EF Core <span class="badge plan">planned</span></h3><p>H2Sharp.EntityFrameworkCore: mappings, migrations, sequences.</p><a class="go" href="dotnet/efcore.html">Stub →</a></div>
-      <div class="card"><h3>Port status</h3><p>Phases 0–10: what is done / in progress / todo — from ROADMAP.</p><a class="go" href="status/">Open →</a></div>
+      <div class="card"><h3>Port status</h3><p>Phases 0–10: what is done / in progress / todo — from the code.</p><a class="go" href="status/">Open →</a></div>
     </div>
   </section>
 
   <section class="block">
     <h2>Where we are</h2>
-    <p class="sub">Phases from <code>docs/ROADMAP.md</code> in the main repo. Honestly: the engine is built bottom-up — MVStore is done, values and schema are next, the provider is phase eight.</p>
+    <p class="sub">Read from the repository itself (commit history and test projects), since <code>docs/ROADMAP.md</code> now lags the code. Honestly: the engine executes real queries and the provider is green; transactions and the ORM layers are the open work.</p>
     <div class="timeline">
       <div class="phase done"><b>0 · Bootstrap</b><span>done — skeleton, CI, oracle</span></div>
-      <div class="phase now"><b>1 · Foundation</b><span>in progress — util, ParserUtil</span></div>
-      <div class="phase done"><b>2 · MVStore</b><span>done — file-compat ✓</span></div>
-      <div class="phase"><b>3 · Values</b><span>next — table/index core</span></div>
-      <div class="phase"><b>5–6 · SQL+Engine</b><span>todo — Parser, Session</span></div>
-      <div class="phase"><b>8–9 · Providers</b><span>todo — ADO.NET, EF</span></div>
+      <div class="phase done"><b>1–2 · Foundation</b><span>done — util, MVStore, file-compat ✓</span></div>
+      <div class="phase done"><b>3–4 · Values, schema</b><span>done — types, tables, indexes</span></div>
+      <div class="phase done"><b>5–6 · SQL, engine</b><span>done — SELECT, WHERE, GROUP BY, aggregates</span></div>
+      <div class="phase now"><b>8 · ADO.NET</b><span>green — Dapper gate closed</span></div>
+      <div class="phase"><b>7, 9–10</b><span>todo — constraints, EF Core, conformance</span></div>
     </div>
   </section>
 

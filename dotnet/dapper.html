@@ -1,9 +1,37 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Dapper (planned) — H2Sharp</title><link rel="icon" type="image/svg+xml" href="../assets/favicon.svg"><link rel="stylesheet" href="../assets/site.css"></head><body>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Dapper — H2Sharp</title><link rel="icon" type="image/svg+xml" href="../assets/favicon.svg"><link rel="stylesheet" href="../assets/site.css"></head><body>
 <header class="site-header"><div class="wrap"><a class="brand" href="../" style="text-decoration:none"><img src="../assets/logo.svg" alt="">H2Sharp <small>early development</small></a><nav class="main"><a href="../">Home</a><a href="../sql/">SQL</a><a href="./" class="active">.NET API</a><a href="../status/">Status</a></nav></div></header>
-<main class="wrap"><section class="block"><h2>Dapper <span class="badge plan">planned · future shape</span></h2><p class="sub">The first live consumer of the provider. The sample below sets the format of future recipes — <b>do not run</b> before phase 8.</p><pre class="mini"><code><span class="tok-c">// planned — works once H2Sharp.Data lands (phase 8)</span>
-<span class="tok-k">await using var</span> con = <span class="tok-k">new</span> H2Connection(<span class="tok-s">"Data Source=:memory:"</span>);
-<span class="tok-k">await</span> con.OpenAsync();
-<span class="tok-k">await</span> con.ExecuteAsync(<span class="tok-s">"CREATE TABLE test(id INT PRIMARY KEY, name VARCHAR)"</span>);
-<span class="tok-k">await</span> con.ExecuteAsync(<span class="tok-s">"INSERT INTO test VALUES(1,'Hi')"</span>);
-<span class="tok-k">var</span> rows = <span class="tok-k">await</span> con.QueryAsync&lt;Test&gt;(<span class="tok-s">"SELECT * FROM test"</span>);</code></pre></section></main>
-<footer><div class="wrap"><span>Recipe format is set — content lands after phase 8.</span><span style="margin-left:auto"><a href="./">← .NET API</a></span></div></footer></body></html>
+<main class="wrap"><section class="block">
+<h2>Dapper <span class="badge ok">works today</span></h2>
+<p class="sub">The first live consumer of the provider, and the gate that keeps it honest: Dapper talks to <code>IDbConnection</code> and nothing else, so a flow that works here works for any caller shaped the same way. This is the provider's gate test, not an example invented for the docs.</p>
+
+<pre class="mini"><code><span class="tok-k">using</span> H2Sharp.Data;
+
+<span class="tok-k">using</span> IDbConnection con = <span class="tok-k">new</span> H2Connection(<span class="tok-s">"jdbc:h2:mem:demo"</span>);
+con.Open();
+
+_ = con.Execute(<span class="tok-s">"DROP TABLE IF EXISTS PERSON"</span>);
+_ = con.Execute(<span class="tok-s">"CREATE TABLE PERSON(ID INT PRIMARY KEY, NAME VARCHAR(100) NOT NULL, AGE INT)"</span>);
+
+<span class="tok-k">int</span> inserted = con.Execute(
+    <span class="tok-s">"INSERT INTO PERSON(ID, NAME, AGE) VALUES (@Id, @Name, @Age)"</span>,
+    <span class="tok-k">new</span> Person { Id = 1, Name = <span class="tok-s">"Ada"</span>, Age = 36 });
+
+<span class="tok-k">var</span> rows = con.Query&lt;Person&gt;(<span class="tok-s">"SELECT ID, NAME, AGE FROM PERSON ORDER BY ID"</span>).AsList();
+<span class="tok-k">int</span> updated = con.Execute(
+    <span class="tok-s">"UPDATE PERSON SET AGE = @Age WHERE ID = @Id"</span>, <span class="tok-k">new</span> { Id = 1, Age = 37 });
+<span class="tok-k">int</span> count   = con.QuerySingle&lt;<span class="tok-t">int</span>&gt;(<span class="tok-s">"SELECT COUNT(*) FROM PERSON"</span>);
+con.Execute(<span class="tok-s">"DELETE FROM PERSON WHERE ID = @Id"</span>, <span class="tok-k">new</span> { Id = 1 });</code></pre>
+
+<div class="version-banner"><b>Gate (phase 8) — closed.</b> <code>DapperSmokeTests</code>: open, create, insert, update, select (repeat after the update on purpose), scalar path, delete. Plus <code>ParametersAreNotConcatenatedIntoTheText</code>: the statement keeps its <code>@Id</code> placeholders whatever the value is, so the provider is not a SQL-injection vector.</div>
+
+<h3 id="how">Why this test and not another</h3>
+<ul>
+<li><b>Read after write.</b> The select is repeated after the update — an update that reports one row and leaves the old value behind is exactly the bug a smoke test exists to catch, and a single select would miss it.</li>
+<li><b>Scalar is a separate path.</b> Dapper's single-value path differs from materialisation; a provider that answers the first and not the second is common, so both are exercised.</li>
+<li><b>H2 spelling on purpose.</b> The flow uses <code>jdbc:h2:mem:…</code> rather than <code>Data Source=…</code> — that is the form that needs parsing. A <code>Data Source</code> test would pass on a provider that took the text and looked at none of it.</li>
+<li><b>Not written against its own members.</b> Nothing here touches <code>H2Connection</code> beyond handing it to Dapper.</li>
+</ul>
+
+<p class="sub">Async (<code>OpenAsync</code>, <code>ExecuteAsync</code>, <code>QueryAsync</code>) is available on the provider; the gate test drives the synchronous surface.</p>
+</section></main>
+<footer><div class="wrap"><span>H2Sharp · Dapper flow green</span><span style="margin-left:auto"><a href="./">← .NET API</a></span></div></footer></body></html>
