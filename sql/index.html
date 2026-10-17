@@ -9,13 +9,14 @@
 </head>
 <body>
 <header class="site-header"><div class="wrap">
-<a class="brand" href="../" style="text-decoration:none"><img src="../assets/logo.svg" alt="">H2Sharp <small>early development</small></a>
+<a class="brand" href="../" style="text-decoration:none"><img src="../assets/logo.svg" alt="">H2Sharp <small>in progress</small></a>
 <nav class="main"><a href="../">Home</a><a href="./" class="active">SQL</a><a href="../dotnet/">.NET API</a><a href="../status/">Status</a></nav>
 </div></header>
 <main class="wrap">
 <section class="block">
 <h2 id="top">SQL reference (H2 mirror)</h2>
 <p class="sub">H2Sharp's own design over H2 content. Anchors are stable: <code>#commands</code>, <code>#functions</code>, <code>#datatypes</code>, <code>#grammar</code>, <code>#systemtables</code> — deep links survive a site move.</p>
+<div class="version-banner"><b>This is H2's full grammar, not the engine's capabilities.</b> The pages below mirror what the port is written against; the engine executes a subset today (no <code>JOIN</code>, subqueries, window functions or <code>MERGE</code> yet). See <a href="../status/">port status</a> for what actually runs.</div>
 <div class="version-banner">Snapshot frozen once: H2 <code>2.5.252 (2026-09-23)</code> + H2Sharp pin <code>27c5170 (2026-10-06)</code> · Source: <a href="https://www.h2database.com/html/commands.html">h2database.com/html</a> · © H2 Group, MPL-2.0 / EPL-1.0 · Provenance: <code>raw/provenance.json</code> (date, URLs, SHA-256).</div>
 <div class="grid" id="commands">
 <div class="card"><h3>Commands <span class="badge ok">mirror</span></h3><p>SELECT · INSERT · UPDATE · DELETE · MERGE · DDL · SET · SCRIPT…</p><a class="go" href="ref/commands.html">Open →</a></div>

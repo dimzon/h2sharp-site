@@ -1,54 +1,56 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Port status — H2Sharp</title><link rel="icon" type="image/svg+xml" href="../assets/favicon.svg"><link rel="stylesheet" href="../assets/site.css"></head><body>
-<header class="site-header"><div class="wrap"><a class="brand" href="../" style="text-decoration:none"><img src="../assets/logo.svg" alt="">H2Sharp <small>early development</small></a><nav class="main"><a href="../">Home</a><a href="../sql/">SQL</a><a href="../dotnet/">.NET API</a><a href="./" class="active">Status</a></nav></div></header>
+<header class="site-header"><div class="wrap"><a class="brand" href="../" style="text-decoration:none"><img src="../assets/logo.svg" alt="">H2Sharp <small>in progress</small></a><nav class="main"><a href="../">Home</a><a href="../sql/">SQL</a><a href="../dotnet/">.NET API</a><a href="./" class="active">Status</a></nav></div></header>
 <main class="wrap"><section class="block">
 <h2>Port status</h2>
-<p class="sub">Read from the repository itself — commit history and test projects — as of 2026-10-17. Canon is <a href="https://github.com/dimzon/h2sharp/blob/main/docs/ROADMAP.md">docs/ROADMAP.md ↗</a> and <code>MIGRATION_STATUS.md</code>, but note both still <b>lag the code</b>: the roadmap lists phase 1 as in progress and the ADO.NET provider as todo.</p>
+<p class="sub">From the project's own <a href="https://github.com/dimzon/h2sharp/blob/main/docs/ROADMAP.md">docs/ROADMAP.md ↗</a> (refreshed 2026-10-17) and README. This page follows that file rather than guessing from commit history — it is the authority, and it distinguishes <b>done</b> from <b>parses and refuses</b>.</p>
 
-<div class="version-banner"><b>What changed most recently:</b> the ADO.NET conformance suite is <b>293 of 293 green</b> — including <code>TransactionTestBase</code>, so provider transactions are real. <code>H2DataAdapter</code>, <code>H2CommandBuilder</code> and <code>H2DbColumn</code> joined the provider, and the value mapper now keeps decimals exact rather than rounding quietly.</div>
+<div class="version-banner"><b>Status in one line:</b> a usable subset runs end to end — an ADO.NET provider over an <b>in-memory</b> engine: open connection, DDL, DML, query, reader, Dapper.</div>
 
 <h3 id="phases">Phases</h3>
 <div class="timeline">
-<div class="phase done"><b>0 · Bootstrap</b><span>done — skeleton, CI, oracle harness</span></div>
-<div class="phase done"><b>1 · Foundation</b><span>done — util, ErrorCode, messages</span></div>
-<div class="phase done"><b>2 · MVStore</b><span>done — file-compat both ways ✓</span></div>
-<div class="phase done"><b>3 · Values, schema</b><span>done — types, tables, indexes</span></div>
-<div class="phase done"><b>4 · Expressions</b><span>done — functions, aggregates</span></div>
-<div class="phase done"><b>5 · Commands/SQL</b><span>done — parser, SELECT/DML/DDL</span></div>
-<div class="phase done"><b>6 · Engine</b><span>done — database, session, plans</span></div>
+<div class="phase done"><b>0 · Bootstrap</b><span>done</span></div>
+<div class="phase done"><b>1 · Foundation</b><span>done</span></div>
+<div class="phase done"><b>2 · MVStore</b><span>done — file-compat both ways</span></div>
+<div class="phase done"><b>3 · Values, schema</b><span>done for what is portable</span></div>
+<div class="phase now"><b>4 · Expressions</b><span>partial</span></div>
+<div class="phase now"><b>5 · Commands/SQL</b><span>partial</span></div>
+<div class="phase now"><b>6 · Engine</b><span>partial</span></div>
 <div class="phase"><b>7 · Constraints, rights</b><span>todo</span></div>
-<div class="phase now"><b>8 · ADO.NET</b><span>green — 293/293 spec, transactions ✓</span></div>
+<div class="phase done"><b>8 · ADO.NET provider</b><span>done</span></div>
 <div class="phase"><b>9 · EF Core</b><span>todo</span></div>
 <div class="phase"><b>10 · Conformance, polish</b><span>todo</span></div>
 </div>
 
-<h3 id="sql">SQL that runs today</h3>
-<p class="sub">Each of these was landed as its own commit with a differential test against the reference JVM:</p>
+<h3 id="sql">SQL that executes</h3>
 <table class="ref">
 <tr><th>Area</th><th>Works</th></tr>
-<tr><td>Queries</td><td>Flat <code>SELECT</code> end to end, <code>WHERE</code> as index conditions, <code>LIMIT</code>/<code>OFFSET</code>/<code>FETCH</code>, <code>ORDER BY</code> served from indexes, <code>DISTINCT</code></td></tr>
-<tr><td>Grouping</td><td><code>GROUP BY</code> / <code>HAVING</code> through grouped execution</td></tr>
-<tr><td>Aggregates</td><td><code>COUNT</code> (incl. <code>COUNT(*)</code>), <code>SUM</code>, <code>MIN</code>, <code>MAX</code> (index first-or-last shortcut), <code>AVG</code>, <code>STDDEV</code>/<code>VAR</code> (Welford), <code>ANY</code>/<code>EVERY</code>, <code>MEDIAN</code>, <code>ANY_VALUE</code>, <code>PERCENTILE_CONT</code>/<code>PERCENTILE_DISC</code> via <code>WITHIN GROUP</code>, <code>LISTAGG</code> (three spellings), <code>ARRAY_AGG</code>, distinct aggregates</td></tr>
-<tr><td>Regression / bit aggregates</td><td><code>COVAR_POP</code>/<code>COVAR_SAMP</code>, <code>CORR</code> (paired accumulator), <code>REGR_COUNT</code>/<code>REGR_AVGX</code>/<code>REGR_AVGY</code>/<code>REGR_SXX</code>/<code>REGR_SYY</code>, <code>BIT_AND_AGG</code>/<code>NAND</code>/<code>NOR</code>/<code>OR</code>/<code>XNOR</code>/<code>XOR</code></td></tr>
-<tr><td>DML/DDL</td><td><code>CREATE TABLE</code>, <code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>, parameters kept out of the SQL text</td></tr>
-<tr><td>Expressions</td><td><code>DUAL</code>, <code>CAST</code>, NULL folding in <code>AND</code>/<code>OR</code> to UNKNOWN</td></tr>
+<tr><td>Queries</td><td>Flat <code>SELECT</code>, <code>UNION</code>/<code>UNION ALL</code>, <code>DISTINCT</code>, <code>GROUP BY</code>/<code>HAVING</code>, <code>ORDER BY</code>, <code>LIMIT</code>/<code>OFFSET</code>/<code>FETCH</code>, <code>DUAL</code>, <code>CAST</code>, literals</td></tr>
+<tr><td>Parameters</td><td><code>?</code> placeholders, and <code>@name</code> rewritten</td></tr>
+<tr><td>Aggregates</td><td><code>COUNT</code>/<code>COUNT(*)</code>, <code>SUM</code>, <code>MIN</code>, <code>MAX</code>, <code>AVG</code>, <code>STDDEV*</code>, <code>VAR*</code>, <code>ANY</code>/<code>EVERY</code>, <code>MEDIAN</code>, <code>ANY_VALUE</code>, <code>PERCENTILE_CONT</code>/<code>DISC</code>, <code>LISTAGG</code> (+ <code>GROUP_CONCAT</code>/<code>STRING_AGG</code>), <code>REGR_*</code> (count, avgx, avgy, sxx, syy, slope, intercept, r2, sxy), <code>COVAR_*</code>, <code>CORR</code>, <code>BIT_*_AGG</code> (+ <code>BIT_AND</code>/<code>BIT_OR</code>), <code>ARRAY_AGG</code></td></tr>
+<tr><td>DML</td><td><code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code> (text with <code>?</code> parameters)</td></tr>
+<tr><td>DDL</td><td><code>CREATE TABLE</code> (columns + inline PK), <code>DROP TABLE</code>, <code>CREATE INDEX</code>, <code>ALTER TABLE</code> (partial)</td></tr>
 </table>
 
-<h3 id="perf">Correctness and performance notes</h3>
+<h3 id="not-yet">Not yet</h3>
+<p class="sub">So the <a href="../sql/">SQL mirror</a> is not a promise about what runs — it documents H2's full grammar, while the engine executes the subset above:</p>
 <ul>
-<li><b>Decimals are exact or refused.</b> <code>NUMERIC</code> round-trips exactly; overflow throws; a wide scale of zeros reads, a wide scale with a nonzero value throws — never a quiet round.</li>
-<li><b>Hot paths cached.</b> Indexes, sort types, row types and string reads; the session value comparer is cached instead of rebuilt per group.</li>
-<li><b>Allocation-free where it shows.</b> Typed getters in the reader, parameter scanning, windowed character reads; commands are closed after running so the query cache actually hits.</li>
+<li><code>JOIN</code>, subqueries, window functions (<code>OVER</code>/<code>FILTER</code>), <code>MERGE</code>, <code>MERGE USING</code>, <code>EXPLAIN</code></li>
+<li>Sequences in DDL; the <code>INFORMATION_SCHEMA</code> catalogue</li>
+<li><b>File databases</b> and async <code>OpenAsync</code> — in-memory only today</li>
+<li>Constraints and rights, EF Core</li>
 </ul>
 
-<h3 id="open">Open work</h3>
-<ul>
-<li><code>ChangeDatabase</code> and connection-level <code>GetSchema()</code> over <code>INFORMATION_SCHEMA</code>.</li>
-<li>No batches (<code>CanCreateBatch</code> is <code>false</code>) and no data-source enumerator.</li>
-<li>Constraints and rights (phase 7), EF Core (9), the full conformance script suite (10).</li>
-<li>Intervals reach .NET as <code>TimeSpan</code> only for <code>DAY TO SECOND</code>.</li>
-<li>Public native engine surface is not promised yet.</li>
-</ul>
+<h3 id="tests">Tests</h3>
+<table class="ref">
+<tr><th>Project</th><th>Count</th></tr>
+<tr><td><code>H2Sharp.Tests</code></td><td>982</td></tr>
+<tr><td><code>H2Sharp.Data.Tests</code></td><td>297</td></tr>
+<tr><td><code>H2Sharp.MvStore.Tests</code></td><td>86</td></tr>
+<tr><td><code>H2Sharp.Engine.Tests</code></td><td>5 — red by design (the reference <code>TestIndex</code> port; the rest of the engine suite is not ported)</td></tr>
+</table>
 
-<div class="version-banner"><b>Reference pin:</b> <code>27c51709fef687bc064f23c8dd495b566c69bb93</code> — H2 2.5.x, unchanged, so the <a href="../sql/">SQL mirror</a> is still valid.</div>
+<div class="version-banner"><b><code>TODOException</code> is the honest measure:</b> <b>236</b> sites across ~40 files. A class that parses a statement and then refuses is listed as <i>refuses</i>, not as done — that is why this page says "partial" rather than "done".</div>
+
+<div class="version-banner"><b>Reference pin:</b> <code>27c51709fef687bc064f23c8dd495b566c69bb93</code> — H2 2.5.x, unchanged, so the SQL mirror is still valid.</div>
 </section></main>
 <footer><div class="wrap"><span>Not product documentation — a working note.</span><span style="margin-left:auto"><a href="../">← Home</a></span></div></footer></body></html>

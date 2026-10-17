@@ -1,8 +1,9 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>System.Data — H2Sharp</title><link rel="icon" type="image/svg+xml" href="../assets/favicon.svg"><link rel="stylesheet" href="../assets/site.css"></head><body>
-<header class="site-header"><div class="wrap"><a class="brand" href="../" style="text-decoration:none"><img src="../assets/logo.svg" alt="">H2Sharp <small>early development</small></a><nav class="main"><a href="../">Home</a><a href="../sql/">SQL</a><a href="./" class="active">.NET API</a><a href="../status/">Status</a></nav></div></header>
+<header class="site-header"><div class="wrap"><a class="brand" href="../" style="text-decoration:none"><img src="../assets/logo.svg" alt="">H2Sharp <small>in progress</small></a><nav class="main"><a href="../">Home</a><a href="../sql/">SQL</a><a href="./" class="active">.NET API</a><a href="../status/">Status</a></nav></div></header>
 <main class="wrap"><section class="block">
 <h2>System.Data / ADO.NET <span class="badge ok">available</span></h2>
 <p class="sub">A standard ADO.NET provider in <code>H2Sharp.Data</code> (<code>System.Data.Common</code>). It is measured against the inherited <a href="https://github.com/rowanswim/AdoNet.Specification.Tests">AdoNet.Specification.Tests</a> conformance suite and by a green Dapper flow — not against itself.</p>
+<div class="version-banner"><b>In-memory today.</b> The provider opens <code>mem:</code> databases. File databases and async <code>OpenAsync</code> are not ported yet — the MVStore layer itself is file-compatible both ways, but the provider does not open files at this point.</div>
 
 <div class="version-banner">Gate (phase 8) — <b>closed twice over</b>: <code>DapperSmokeTests</code> drives an in-memory database end to end over <code>IDbConnection</code> (open → create → insert → update → select → delete), and the inherited <a href="https://github.com/rowanswim/AdoNet.Specification.Tests">AdoNet.Specification.Tests</a> suite is <b>293 of 293 green</b>. Source: <code>src/H2Sharp/Data/</code>, tests: <code>tests/H2Sharp.Data.Tests/</code>.</div>
 
@@ -42,6 +43,7 @@ tx.Commit();  <span class="tok-c">// or tx.Rollback()</span></code></pre>
 <ul>
 <li><code>ChangeDatabase</code> — throws <code>TODOException</code>.</li>
 <li>Connection-level <code>GetSchema()</code> over <code>INFORMATION_SCHEMA</code> — not there yet. (<code>H2DataReader.GetSchemaTable()</code> is a different thing and does work.)</li>
+<li>File databases and async <code>OpenAsync</code>.</li>
 <li>No batches — <code>CanCreateBatch</code> is <code>false</code>.</li>
 <li>No data-source enumerator — <code>CanCreateDataSourceEnumerator</code> is <code>false</code>.</li>
 <li>Interval values reach <code>.NET</code> only for <code>DAY TO SECOND</code>; other interval qualifiers are refused rather than approximated.</li>

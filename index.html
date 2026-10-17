@@ -11,7 +11,7 @@
 <body>
 <header class="site-header">
   <div class="wrap">
-    <a class="brand" href="./" style="text-decoration:none"><img src="assets/logo.svg" alt="H2Sharp logo">H2Sharp <small>early development</small></a>
+    <a class="brand" href="./" style="text-decoration:none"><img src="assets/logo.svg" alt="H2Sharp logo">H2Sharp <small>in progress</small></a>
     <input type="checkbox" id="navtoggle" hidden>
     <label class="burger" for="navtoggle" aria-label="Menu">☰</label>
     <nav class="main">
@@ -31,7 +31,7 @@
     <div>
       <span class="eyebrow"><span class="pulse"></span>H2 Database port &nbsp;·&nbsp; embeddable SQL engine for .NET</span>
       <h1>H2, now <span class="grad">on .NET</span></h1>
-      <p class="lead">H2Sharp brings the legendary Java H2 engine to C#. It executes real SQL today — SELECT with WHERE, GROUP BY, ORDER BY, aggregates, DDL, DML — behind a standard ADO.NET provider that is 293 of 293 green on the inherited conformance suite and driven end to end by Dapper. And a database file written by H2Sharp opens in the reference Java H2, and vice versa.</p>
+      <p class="lead">H2Sharp brings the legendary Java H2 engine to C#. A usable subset runs end to end: an ADO.NET provider over an in-memory engine — DDL, DML, <code>SELECT</code> with <code>GROUP BY</code>, <code>UNION</code>, ordering and aggregates, parameters — measured against the reference H2 on the JVM. <code>JOIN</code>, subqueries and window functions are not ported yet, and a class that parses a statement but cannot execute it refuses loudly instead of answering wrongly.</p>
       <div class="cta">
         <a class="btn primary" href="sql/">SQL documentation →</a>
         <a class="btn" href="dotnet/dapper.html">Dapper examples</a>
@@ -40,8 +40,8 @@
       <div class="strip">
         <span class="chip">H2 <b>2.5.252</b> + pin <b>27c5170</b></span>
         <span class="chip"><b>ADO.NET</b> spec <b>293/293</b> ✓</span>
+        <span class="chip"><b>in-memory</b> engine</span>
         <span class="chip"><b>MVStore</b> file-compat ✓</span>
-        <span class="chip">© H2 Group · <b>MPL-2.0 / EPL-1.0</b></span>
       </div>
     </div>
     <div class="codewin">
@@ -88,7 +88,8 @@ dotnet add package H2Sharp --prerelease</code></pre></div>
 
   <section class="block">
     <h2>SQL reference, pinned to the ported version</h2>
-    <p class="sub">The original lives on h2database.com and moves on. We keep a snapshot at commit <code>27c5170</code> (H2 2.5.x, October 2026) in our own design — with a link to the original and H2 Group attribution. The only complete section of the site today.</p>
+    <p class="sub">The original lives on h2database.com and moves on. We keep a snapshot at commit <code>27c5170</code> (H2 2.5.x, October 2026) in our own design — with a link to the original and H2 Group attribution.</p>
+    <div class="version-banner"><b>Read this first:</b> this section mirrors H2's <b>full</b> grammar, which is the reference the port is written against. The engine executes a <b>subset</b> today — no <code>JOIN</code>, subqueries, window functions or <code>MERGE</code> yet. What actually runs is listed on the <a href="status/">status page</a>.</div>
     <div class="version-banner">Snapshot: H2 <code>2.5.252 (2026-09-23)</code> + H2Sharp pin <code>27c5170 (2026-10-06)</code> · Original: <a href="https://www.h2database.com/html/main.html">h2database.com</a> · <a href="https://github.com/h2database/h2database">upstream commit</a> · Pin delta — a <code>DROP ALL OBJECTS</code> fix for local temp tables; grammar matches.</div>
     <div class="grid">
       <div class="card"><h3>Commands <span class="badge ok">mirror</span></h3><p>SELECT, INSERT, UPDATE, DELETE, MERGE, DDL — the full command syntax.</p><a class="go" href="sql/#commands">Open →</a></div>
@@ -115,13 +116,14 @@ dotnet add package H2Sharp --prerelease</code></pre></div>
 
   <section class="block">
     <h2>Where we are</h2>
-    <p class="sub">Read from the repository itself (commit history and test projects), since <code>docs/ROADMAP.md</code> still lags the code. Honestly: the engine executes real queries, the provider is 293/293 on the ADO.NET conformance suite, transactions work — constraints, EF Core and the full conformance suite are the open work.</p>
+    <p class="sub">From the project's own <code>docs/ROADMAP.md</code>. Honestly: phases 0–3 and the ADO.NET provider are done; expressions, commands and engine are <b>partial</b> — a class that parses a statement but cannot run it refuses rather than answering wrongly. <code>JOIN</code>, subqueries and window functions are not ported yet.</p>
     <div class="timeline">
-      <div class="phase done"><b>0 · Bootstrap</b><span>done — skeleton, CI, oracle</span></div>
-      <div class="phase done"><b>1–2 · Foundation</b><span>done — util, MVStore, file-compat ✓</span></div>
-      <div class="phase done"><b>3–4 · Values, schema</b><span>done — types, tables, aggregates</span></div>
-      <div class="phase done"><b>5–6 · SQL, engine</b><span>done — SELECT, WHERE, GROUP BY</span></div>
-      <div class="phase now"><b>8 · ADO.NET</b><span>green — 293/293 spec, transactions ✓</span></div>
+      <div class="phase done"><b>0–2 · Bootstrap, Foundation</b><span>done — CI, oracle, MVStore file-compat</span></div>
+      <div class="phase done"><b>3 · Values, schema</b><span>done for what is portable</span></div>
+      <div class="phase now"><b>4 · Expressions</b><span>partial</span></div>
+      <div class="phase now"><b>5 · Commands/SQL</b><span>partial — SELECT, UNION, DML, DDL</span></div>
+      <div class="phase now"><b>6 · Engine</b><span>partial</span></div>
+      <div class="phase done"><b>8 · ADO.NET</b><span>done — 293/293 spec, transactions</span></div>
       <div class="phase"><b>7, 9–10</b><span>todo — constraints, EF Core, conformance</span></div>
     </div>
   </section>
