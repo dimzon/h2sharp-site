@@ -11,8 +11,8 @@
 <h2>.NET API</h2>
 <p class="sub">The ADO.NET layer works today and is gated by a real conformance suite; the ORM layers come after it. No invented signatures — every section reflects what is in the repository.</p>
 <div class="grid">
-<div class="card"><h3>System.Data <span class="badge ok">available</span></h3><p>H2Connection, H2Command, H2Parameter, H2DataReader, H2ProviderFactory, connection-string builder. Transactions not yet.</p><a class="go" href="system-data.html">Reference →</a></div>
-<div class="card"><h3>Dapper <span class="badge ok">works today</span></h3><p>End-to-end flow over <code>IDbConnection</code>: open, create, insert, update, select, delete. Parameters are never inlined.</p><a class="go" href="dapper.html">Examples →</a></div>
+<div class="card"><h3>System.Data <span class="badge ok">available</span></h3><p>H2Connection, H2Command, H2Parameter, H2DataReader, H2Transaction, H2DataAdapter, H2ProviderFactory. 293/293 of the ADO.NET spec suite.</p><a class="go" href="system-data.html">Reference →</a></div>
+<div class="card"><h3>Dapper <span class="badge ok">works today</span></h3><p>End-to-end over <code>IDbConnection</code>: open, create, insert, update, select, delete, transactions.</p><a class="go" href="dapper.html">Examples →</a></div>
 <div class="card"><h3>Native API <span class="badge plan">planned</span></h3><p>Direct engine access: Parser, Session, Database. Gate: a stable public surface over the engine.</p><a class="go" href="native.html">Stub →</a></div>
 <div class="card"><h3>linq2db <span class="badge plan">planned</span></h3><p>LINQ provider over ADO.NET. Gate: type mappings H2→.NET + dialect smoke.</p><a class="go" href="linq2db.html">Stub →</a></div>
 <div class="card"><h3>EF Core <span class="badge plan">planned</span></h3><p>H2Sharp.EntityFrameworkCore: SQL generation, migrations, sequences/identity. Gate: ROADMAP phase 9.</p><a class="go" href="efcore.html">Stub →</a></div>

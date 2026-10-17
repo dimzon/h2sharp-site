@@ -22,7 +22,9 @@ _ = con.Execute(<span class="tok-s">"CREATE TABLE PERSON(ID INT PRIMARY KEY, NAM
 <span class="tok-k">int</span> count   = con.QuerySingle&lt;<span class="tok-t">int</span>&gt;(<span class="tok-s">"SELECT COUNT(*) FROM PERSON"</span>);
 con.Execute(<span class="tok-s">"DELETE FROM PERSON WHERE ID = @Id"</span>, <span class="tok-k">new</span> { Id = 1 });</code></pre>
 
-<div class="version-banner"><b>Gate (phase 8) — closed.</b> <code>DapperSmokeTests</code>: open, create, insert, update, select (repeat after the update on purpose), scalar path, delete. Plus <code>ParametersAreNotConcatenatedIntoTheText</code>: the statement keeps its <code>@Id</code> placeholders whatever the value is, so the provider is not a SQL-injection vector.</div>
+<div class="version-banner"><b>Gate (phase 8) — closed twice over.</b> <code>DapperSmokeTests</code>: open, create, insert, update, select (repeat after the update on purpose), scalar path, delete. Plus <code>ParametersAreNotConcatenatedIntoTheText</code>: the statement keeps its <code>@Id</code> placeholders whatever the value is, so the provider is not a SQL-injection vector. And the inherited <a href="https://github.com/rowanswim/AdoNet.Specification.Tests">AdoNet.Specification.Tests</a> suite is 293 of 293 green.</div>
+
+<p class="sub">Dapper's own <code>IDbTransaction</code> support works too — <code>BeginTransaction</code> hands out a real transaction over the engine's own one.</p>
 
 <h3 id="how">Why this test and not another</h3>
 <ul>

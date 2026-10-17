@@ -4,17 +4,20 @@
 <h2>System.Data / ADO.NET <span class="badge ok">available</span></h2>
 <p class="sub">A standard ADO.NET provider in <code>H2Sharp.Data</code> (<code>System.Data.Common</code>). It is measured against the inherited <a href="https://github.com/rowanswim/AdoNet.Specification.Tests">AdoNet.Specification.Tests</a> conformance suite and by a green Dapper flow — not against itself.</p>
 
-<div class="version-banner">Gate (phase 8) — <b>closed</b>: <code>DapperSmokeTests</code> drives an in-memory database end to end over <code>IDbConnection</code> (open → create → insert → update → select → delete). Source: <code>src/H2Sharp/Data/</code>, tests: <code>tests/H2Sharp.Data.Tests/</code>.</div>
+<div class="version-banner">Gate (phase 8) — <b>closed twice over</b>: <code>DapperSmokeTests</code> drives an in-memory database end to end over <code>IDbConnection</code> (open → create → insert → update → select → delete), and the inherited <a href="https://github.com/rowanswim/AdoNet.Specification.Tests">AdoNet.Specification.Tests</a> suite is <b>293 of 293 green</b>. Source: <code>src/H2Sharp/Data/</code>, tests: <code>tests/H2Sharp.Data.Tests/</code>.</div>
 
 <h3 id="types">Types</h3>
 <table class="ref">
 <tr><th>Type</th><th>Base</th><th>Notes</th></tr>
 <tr><td><code>H2Connection</code></td><td><code>DbConnection</code></td><td>Also exposes <code>CurrentDatabase</code> (the engine's <code>Database</code>) for engine-level work.</td></tr>
-<tr><td><code>H2Command</code></td><td><code>DbCommand</code></td><td><code>ExecuteNonQuery</code>, <code>ExecuteScalar</code>, <code>ExecuteReader</code>, <code>Prepare</code>, <code>Cancel</code>, <code>Parameters</code>.</td></tr>
+<tr><td><code>H2Command</code></td><td><code>DbCommand</code></td><td><code>ExecuteNonQuery</code>, <code>ExecuteScalar</code>, <code>ExecuteReader</code>, their <code>Async</code> forms, <code>Prepare</code>, <code>Cancel</code>, <code>Parameters</code>.</td></tr>
 <tr><td><code>H2Parameter</code></td><td><code>DbParameter</code></td><td>Parameters travel beside the text — they are never concatenated into it.</td></tr>
 <tr><td><code>H2DataReader</code></td><td><code>DbDataReader</code></td><td>Full typed getter set, <code>GetBytes</code>/<code>GetChars</code>, <code>GetSchemaTable</code>.</td></tr>
+<tr><td><code>H2Transaction</code></td><td><code>DbTransaction</code></td><td><b>Works.</b> Wraps an engine <code>Tx.Transaction</code>: <code>Commit</code>, <code>Rollback</code>, <code>IsolationLevel</code>. Covered by the suite's <code>TransactionTestBase</code>.</td></tr>
+<tr><td><code>H2DataAdapter</code></td><td><code>DbDataAdapter</code></td><td>Fill / update from a select command, for <code>DataSet</code>-style code.</td></tr>
+<tr><td><code>H2CommandBuilder</code></td><td><code>DbCommandBuilder</code></td><td>Builds insert / update / delete commands for a table.</td></tr>
 <tr><td><code>H2ConnectionStringBuilder</code></td><td><code>DbConnectionStringBuilder</code></td><td><code>DataSource</code>, <code>UserId</code>, <code>Password</code>, <code>ToH2ConnectionString()</code>.</td></tr>
-<tr><td><code>H2ProviderFactory</code></td><td><code>DbProviderFactory</code></td><td>Entry point for DI and for tooling: <code>H2ProviderFactory.Instance</code>.</td></tr>
+<tr><td><code>H2ProviderFactory</code></td><td><code>DbProviderFactory</code></td><td>Entry point for DI and tooling: <code>H2ProviderFactory.Instance</code>.</td></tr>
 </table>
 
 <h3 id="connection-strings">Connection strings</h3>
@@ -29,13 +32,19 @@ Data Source=jdbc:h2:mem:mydb              <span class="tok-c">// H2 spelling, sa
 <span class="tok-c">// or construct directly:</span>
 <span class="tok-k">await using var</span> con = <span class="tok-k">new</span> H2Connection(<span class="tok-s">"jdbc:h2:mem:mydb"</span>);</code></pre>
 
+<h3 id="transactions">Transactions</h3>
+<pre class="mini"><code><span class="tok-k">using var</span> tx = con.BeginTransaction();
+con.Execute(<span class="tok-s">"INSERT INTO PERSON VALUES(@Id, @Name)"</span>, <span class="tok-k">new</span> { Id = 2, Name = <span class="tok-s">"Grace"</span> });
+tx.Commit();  <span class="tok-c">// or tx.Rollback()</span></code></pre>
+
 <h3 id="not-yet">Not implemented yet</h3>
 <p class="sub">Honest list — these throw <code>TODOException</code> or are absent, by design at this stage:</p>
 <ul>
-<li><b>Transactions</b> — <code>BeginTransaction</code> is not reachable: <code>H2Connection.BeginDbTransaction</code> throws <code>TODOException</code>. The <code>H2Transaction</code> type exists with <code>Commit</code>/<code>Rollback</code>/<code>IsolationLevel</code>, but nothing hands one out yet.</li>
 <li><code>ChangeDatabase</code> — throws <code>TODOException</code>.</li>
-<li><code>GetSchema()</code> over <code>INFORMATION_SCHEMA</code> — not there yet.</li>
-<li>No <code>DataAdapter</code> and no <code>CommandBuilder</code> — explicitly unsupported by design, use Dapper or read the reader. <code>CanCreateBatch</code> is <code>false</code>.</li>
+<li>Connection-level <code>GetSchema()</code> over <code>INFORMATION_SCHEMA</code> — not there yet. (<code>H2DataReader.GetSchemaTable()</code> is a different thing and does work.)</li>
+<li>No batches — <code>CanCreateBatch</code> is <code>false</code>.</li>
+<li>No data-source enumerator — <code>CanCreateDataSourceEnumerator</code> is <code>false</code>.</li>
+<li>Interval values reach <code>.NET</code> only for <code>DAY TO SECOND</code>; other interval qualifiers are refused rather than approximated.</li>
 </ul>
 
 <p class="sub">See also <a href="dapper.html">Dapper</a> for the live end-to-end flow, and <a href="../status/">port status</a> for phases.</p>

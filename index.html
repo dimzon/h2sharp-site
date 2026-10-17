@@ -31,7 +31,7 @@
     <div>
       <span class="eyebrow"><span class="pulse"></span>H2 Database port &nbsp;·&nbsp; embeddable SQL engine for .NET</span>
       <h1>H2, now <span class="grad">on .NET</span></h1>
-      <p class="lead">H2Sharp brings the legendary Java H2 engine to C#. It executes real SQL today — SELECT with WHERE, GROUP BY, ORDER BY, aggregates, DDL, DML — behind a standard ADO.NET provider that Dapper drives end to end. And a database file written by H2Sharp opens in the reference Java H2, and vice versa.</p>
+      <p class="lead">H2Sharp brings the legendary Java H2 engine to C#. It executes real SQL today — SELECT with WHERE, GROUP BY, ORDER BY, aggregates, DDL, DML — behind a standard ADO.NET provider that is 293 of 293 green on the inherited conformance suite and driven end to end by Dapper. And a database file written by H2Sharp opens in the reference Java H2, and vice versa.</p>
       <div class="cta">
         <a class="btn primary" href="sql/">SQL documentation →</a>
         <a class="btn" href="dotnet/dapper.html">Dapper examples</a>
@@ -39,7 +39,7 @@
       </div>
       <div class="strip">
         <span class="chip">H2 <b>2.5.252</b> + pin <b>27c5170</b></span>
-        <span class="chip"><b>ADO.NET</b> provider · Dapper gate ✓</span>
+        <span class="chip"><b>ADO.NET</b> spec <b>293/293</b> ✓</span>
         <span class="chip"><b>MVStore</b> file-compat ✓</span>
         <span class="chip">© H2 Group · <b>MPL-2.0 / EPL-1.0</b></span>
       </div>
@@ -104,8 +104,8 @@ dotnet add package H2Sharp --prerelease</code></pre></div>
     <h2>.NET API</h2>
     <p class="sub">The ADO.NET layer works and is gated by an inherited conformance suite plus a green Dapper flow. The ORM layers come after it. No invented signatures — every section reflects what is in the repository.</p>
     <div class="grid">
-      <div class="card"><h3>System.Data <span class="badge ok">available</span></h3><p>H2Connection, H2Command, H2Parameter, H2DataReader, H2ProviderFactory. Transactions not yet.</p><a class="go" href="dotnet/system-data.html">Reference →</a></div>
-      <div class="card"><h3>Dapper <span class="badge ok">works today</span></h3><p>End-to-end over <code>IDbConnection</code>: open, create, insert, update, select, delete.</p><a class="go" href="dotnet/dapper.html">Examples →</a></div>
+      <div class="card"><h3>System.Data <span class="badge ok">available</span></h3><p>H2Connection, H2Command, H2Parameter, H2DataReader, H2Transaction, H2DataAdapter, H2ProviderFactory. Transactions work.</p><a class="go" href="dotnet/system-data.html">Reference →</a></div>
+      <div class="card"><h3>Dapper <span class="badge ok">works today</span></h3><p>End-to-end over <code>IDbConnection</code>: open, create, insert, update, select, delete, transactions.</p><a class="go" href="dotnet/dapper.html">Examples →</a></div>
       <div class="card"><h3>Native API <span class="badge plan">planned</span></h3><p>Direct engine access. The engine executes real queries now; a public surface is not promised yet.</p><a class="go" href="dotnet/native.html">Stub →</a></div>
       <div class="card"><h3>linq2db <span class="badge plan">planned</span></h3><p>LINQ provider on top of the ADO.NET provider.</p><a class="go" href="dotnet/linq2db.html">Stub →</a></div>
       <div class="card"><h3>EF Core <span class="badge plan">planned</span></h3><p>H2Sharp.EntityFrameworkCore: mappings, migrations, sequences.</p><a class="go" href="dotnet/efcore.html">Stub →</a></div>
@@ -115,13 +115,13 @@ dotnet add package H2Sharp --prerelease</code></pre></div>
 
   <section class="block">
     <h2>Where we are</h2>
-    <p class="sub">Read from the repository itself (commit history and test projects), since <code>docs/ROADMAP.md</code> now lags the code. Honestly: the engine executes real queries and the provider is green; transactions and the ORM layers are the open work.</p>
+    <p class="sub">Read from the repository itself (commit history and test projects), since <code>docs/ROADMAP.md</code> still lags the code. Honestly: the engine executes real queries, the provider is 293/293 on the ADO.NET conformance suite, transactions work — constraints, EF Core and the full conformance suite are the open work.</p>
     <div class="timeline">
       <div class="phase done"><b>0 · Bootstrap</b><span>done — skeleton, CI, oracle</span></div>
       <div class="phase done"><b>1–2 · Foundation</b><span>done — util, MVStore, file-compat ✓</span></div>
-      <div class="phase done"><b>3–4 · Values, schema</b><span>done — types, tables, indexes</span></div>
-      <div class="phase done"><b>5–6 · SQL, engine</b><span>done — SELECT, WHERE, GROUP BY, aggregates</span></div>
-      <div class="phase now"><b>8 · ADO.NET</b><span>green — Dapper gate closed</span></div>
+      <div class="phase done"><b>3–4 · Values, schema</b><span>done — types, tables, aggregates</span></div>
+      <div class="phase done"><b>5–6 · SQL, engine</b><span>done — SELECT, WHERE, GROUP BY</span></div>
+      <div class="phase now"><b>8 · ADO.NET</b><span>green — 293/293 spec, transactions ✓</span></div>
       <div class="phase"><b>7, 9–10</b><span>todo — constraints, EF Core, conformance</span></div>
     </div>
   </section>
