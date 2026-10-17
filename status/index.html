@@ -2,9 +2,20 @@
 <header class="site-header"><div class="wrap"><a class="brand" href="../" style="text-decoration:none"><img src="../assets/logo.svg" alt="">H2Sharp <small>in progress</small></a><nav class="main"><a href="../">Home</a><a href="../sql/">SQL</a><a href="../dotnet/">.NET API</a><a href="./" class="active">Status</a></nav></div></header>
 <main class="wrap"><section class="block">
 <h2>Port status</h2>
-<p class="sub">From the project's own <a href="https://github.com/dimzon/h2sharp/blob/main/docs/ROADMAP.md">docs/ROADMAP.md ↗</a> (refreshed 2026-10-17) and README. This page follows that file rather than guessing from commit history — it is the authority, and it distinguishes <b>done</b> from <b>parses and refuses</b>.</p>
+<p class="sub">From the project's own <a href="https://github.com/dimzon/h2sharp/blob/main/docs/ROADMAP.md">docs/ROADMAP.md ↗</a> and README. The roadmap's <i>Current status</i> block is pinned to the commit it was written at, and new work lands after it — so this page quotes it, then adds what has landed since.</p>
 
 <div class="version-banner"><b>Status in one line:</b> a usable subset runs end to end — an ADO.NET provider over an <b>in-memory</b> engine: open connection, DDL, DML, query, reader, Dapper.</div>
+
+<h3 id="newer">Newer than the roadmap block</h3>
+<p class="sub">Verified in the source, not taken on trust from commit titles:</p>
+<table class="ref">
+<tr><th>Landed after the roadmap refresh</th><th>What it means</th></tr>
+<tr><td>Predicates: <code>BETWEEN</code>, <code>IN</code> (list and constant set), <code>LIKE</code>, <code>ILIKE</code>, <code>REGEXP</code></td><td>Ported as the reference's own predicate types — <code>BetweenPredicate</code>, <code>ConditionIn</code> / <code>ConditionInList</code> / <code>ConditionInConstantSet</code>, <code>CompareLike</code> — not a shortcut in the parser.</td></tr>
+<tr><td><code>CASE WHEN</code></td><td>Runs through <code>SearchedCase</code> and <code>OperationN</code>.</td></tr>
+<tr><td>Aggregates: <code>JSON_ARRAYAGG</code>, <code>JSON_OBJECTAGG</code>, <code>HISTOGRAM</code>, <code>MODE</code></td><td>JSON aggregates build straight into bytes; <code>HISTOGRAM</code>/<code>MODE</code> on a value-to-count map.</td></tr>
+<tr><td>Window frame units, bound types, exclusions</td><td>The frame machinery is ported. Window <i>functions</i> (<code>OVER</code>/<code>FILTER</code>) still are not.</td></tr>
+<tr><td><code>UPDATE</code> SET list</td><td>Built from the reference's update-action array.</td></tr>
+</table>
 
 <h3 id="phases">Phases</h3>
 <div class="timeline">
@@ -25,8 +36,9 @@
 <table class="ref">
 <tr><th>Area</th><th>Works</th></tr>
 <tr><td>Queries</td><td>Flat <code>SELECT</code>, <code>UNION</code>/<code>UNION ALL</code>, <code>DISTINCT</code>, <code>GROUP BY</code>/<code>HAVING</code>, <code>ORDER BY</code>, <code>LIMIT</code>/<code>OFFSET</code>/<code>FETCH</code>, <code>DUAL</code>, <code>CAST</code>, literals</td></tr>
+<tr><td>Predicates</td><td><code>BETWEEN</code>, <code>IN</code>, <code>LIKE</code>, <code>ILIKE</code>, <code>REGEXP</code>, <code>CASE WHEN</code> — as the reference's own predicate types</td></tr>
 <tr><td>Parameters</td><td><code>?</code> placeholders, and <code>@name</code> rewritten</td></tr>
-<tr><td>Aggregates</td><td><code>COUNT</code>/<code>COUNT(*)</code>, <code>SUM</code>, <code>MIN</code>, <code>MAX</code>, <code>AVG</code>, <code>STDDEV*</code>, <code>VAR*</code>, <code>ANY</code>/<code>EVERY</code>, <code>MEDIAN</code>, <code>ANY_VALUE</code>, <code>PERCENTILE_CONT</code>/<code>DISC</code>, <code>LISTAGG</code> (+ <code>GROUP_CONCAT</code>/<code>STRING_AGG</code>), <code>REGR_*</code> (count, avgx, avgy, sxx, syy, slope, intercept, r2, sxy), <code>COVAR_*</code>, <code>CORR</code>, <code>BIT_*_AGG</code> (+ <code>BIT_AND</code>/<code>BIT_OR</code>), <code>ARRAY_AGG</code></td></tr>
+<tr><td>Aggregates</td><td><code>COUNT</code>/<code>COUNT(*)</code>, <code>SUM</code>, <code>MIN</code>, <code>MAX</code>, <code>AVG</code>, <code>STDDEV*</code>, <code>VAR*</code>, <code>ANY</code>/<code>EVERY</code>, <code>MEDIAN</code>, <code>ANY_VALUE</code>, <code>HISTOGRAM</code>, <code>MODE</code>, <code>PERCENTILE_CONT</code>/<code>DISC</code>, <code>LISTAGG</code> (+ <code>GROUP_CONCAT</code>/<code>STRING_AGG</code>), <code>JSON_ARRAYAGG</code>/<code>JSON_OBJECTAGG</code>, <code>REGR_*</code> (count, avgx, avgy, sxx, syy, slope, intercept, r2, sxy), <code>COVAR_*</code>, <code>CORR</code>, <code>BIT_*_AGG</code> (+ <code>BIT_AND</code>/<code>BIT_OR</code>), <code>ARRAY_AGG</code></td></tr>
 <tr><td>DML</td><td><code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code> (text with <code>?</code> parameters)</td></tr>
 <tr><td>DDL</td><td><code>CREATE TABLE</code> (columns + inline PK), <code>DROP TABLE</code>, <code>CREATE INDEX</code>, <code>ALTER TABLE</code> (partial)</td></tr>
 </table>
@@ -34,7 +46,7 @@
 <h3 id="not-yet">Not yet</h3>
 <p class="sub">So the <a href="../sql/">SQL mirror</a> is not a promise about what runs — it documents H2's full grammar, while the engine executes the subset above:</p>
 <ul>
-<li><code>JOIN</code>, subqueries, window functions (<code>OVER</code>/<code>FILTER</code>), <code>MERGE</code>, <code>MERGE USING</code>, <code>EXPLAIN</code></li>
+<li><code>JOIN</code>, subqueries, window functions (<code>OVER</code>/<code>FILTER</code>), <code>MERGE</code>, <code>MERGE USING</code>, <code>EXPLAIN</code> — the window frame machinery is ported, window functions are not</li>
 <li>Sequences in DDL; the <code>INFORMATION_SCHEMA</code> catalogue</li>
 <li><b>File databases</b> and async <code>OpenAsync</code> — in-memory only today</li>
 <li>Constraints and rights, EF Core</li>
@@ -49,7 +61,7 @@
 <tr><td><code>H2Sharp.Engine.Tests</code></td><td>5 — red by design (the reference <code>TestIndex</code> port; the rest of the engine suite is not ported)</td></tr>
 </table>
 
-<div class="version-banner"><b><code>TODOException</code> is the honest measure:</b> <b>236</b> sites across ~40 files. A class that parses a statement and then refuses is listed as <i>refuses</i>, not as done — that is why this page says "partial" rather than "done".</div>
+<div class="version-banner"><b><code>TODOException</code> is the honest measure.</b> The roadmap counts <b>236</b> sites across ~40 files, and it distinguishes a class that parses a statement and then refuses from one that works — that is why phases here say "partial" and not "done". The site does not restate a current count, because counting it yourself gives a different number (roughly 240 sites in ~50 files): the figure only means something at the commit it was measured at.</div>
 
 <div class="version-banner"><b>Reference pin:</b> <code>27c51709fef687bc064f23c8dd495b566c69bb93</code> — H2 2.5.x, unchanged, so the SQL mirror is still valid.</div>
 </section></main>
