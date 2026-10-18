@@ -10,11 +10,14 @@
 <p class="sub">Verified in the source, not taken on trust from commit titles:</p>
 <table class="ref">
 <tr><th>Landed after the roadmap refresh</th><th>What it means</th></tr>
-<tr><td>Predicates: <code>BETWEEN</code>, <code>IN</code> (list and constant set), <code>LIKE</code>, <code>ILIKE</code>, <code>REGEXP</code></td><td>Ported as the reference's own predicate types — <code>BetweenPredicate</code>, <code>ConditionIn</code> / <code>ConditionInList</code> / <code>ConditionInConstantSet</code>, <code>CompareLike</code> — not a shortcut in the parser.</td></tr>
-<tr><td><code>CASE WHEN</code></td><td>Runs through <code>SearchedCase</code> and <code>OperationN</code>.</td></tr>
+<tr><td>Predicates: <code>BETWEEN</code>, <code>IN</code> (list and constant set), <code>LIKE</code>, <code>ILIKE</code>, <code>REGEXP</code>, <code>NOT</code></td><td>Ported as the reference's own predicate types — <code>BetweenPredicate</code>, <code>ConditionIn</code> / <code>ConditionInList</code> / <code>ConditionInConstantSet</code>, <code>CompareLike</code>, <code>ConditionNot</code> — not a shortcut in the parser, and none of them refuses.</td></tr>
+<tr><td><code>CASE</code>, both forms</td><td><code>SimpleCase</code> and <code>SearchedCase</code> with <code>OperationN</code>.</td></tr>
 <tr><td>Aggregates: <code>JSON_ARRAYAGG</code>, <code>JSON_OBJECTAGG</code>, <code>HISTOGRAM</code>, <code>MODE</code></td><td>JSON aggregates build straight into bytes; <code>HISTOGRAM</code>/<code>MODE</code> on a value-to-count map.</td></tr>
 <tr><td>Window frame units, bound types, exclusions</td><td>The frame machinery is ported. Window <i>functions</i> (<code>OVER</code>/<code>FILTER</code>) still are not.</td></tr>
 <tr><td><code>UPDATE</code> SET list</td><td>Built from the reference's update-action array.</td></tr>
+<tr><td>Row operations on a transaction</td><td>DML runs on the session transaction with an internal savepoint, and <code>DbTransaction</code> auto-commit is fixed — so a rollback takes back what a statement did.</td></tr>
+<tr><td>LIKE / REGEXP semantics</td><td>Semantics suites pass; the default LIKE escape and <code>IN</code> parameter binding were fixed.</td></tr>
+<tr><td>Allocation work</td><td>Pooled page scratches, one <code>Bits.Reverse</code> for the MVStore byte helpers, the pattern <code>Regex</code> cached once, digit appends without an intermediate string.</td></tr>
 </table>
 
 <h3 id="phases">Phases</h3>
@@ -36,7 +39,7 @@
 <table class="ref">
 <tr><th>Area</th><th>Works</th></tr>
 <tr><td>Queries</td><td>Flat <code>SELECT</code>, <code>UNION</code>/<code>UNION ALL</code>, <code>DISTINCT</code>, <code>GROUP BY</code>/<code>HAVING</code>, <code>ORDER BY</code>, <code>LIMIT</code>/<code>OFFSET</code>/<code>FETCH</code>, <code>DUAL</code>, <code>CAST</code>, literals</td></tr>
-<tr><td>Predicates</td><td><code>BETWEEN</code>, <code>IN</code>, <code>LIKE</code>, <code>ILIKE</code>, <code>REGEXP</code>, <code>CASE WHEN</code> — as the reference's own predicate types</td></tr>
+<tr><td>Predicates</td><td><code>BETWEEN</code>, <code>IN</code>, <code>LIKE</code>, <code>ILIKE</code>, <code>REGEXP</code>, <code>NOT</code>, <code>CASE</code> (simple and searched) — as the reference's own predicate types</td></tr>
 <tr><td>Parameters</td><td><code>?</code> placeholders, and <code>@name</code> rewritten</td></tr>
 <tr><td>Aggregates</td><td><code>COUNT</code>/<code>COUNT(*)</code>, <code>SUM</code>, <code>MIN</code>, <code>MAX</code>, <code>AVG</code>, <code>STDDEV*</code>, <code>VAR*</code>, <code>ANY</code>/<code>EVERY</code>, <code>MEDIAN</code>, <code>ANY_VALUE</code>, <code>HISTOGRAM</code>, <code>MODE</code>, <code>PERCENTILE_CONT</code>/<code>DISC</code>, <code>LISTAGG</code> (+ <code>GROUP_CONCAT</code>/<code>STRING_AGG</code>), <code>JSON_ARRAYAGG</code>/<code>JSON_OBJECTAGG</code>, <code>REGR_*</code> (count, avgx, avgy, sxx, syy, slope, intercept, r2, sxy), <code>COVAR_*</code>, <code>CORR</code>, <code>BIT_*_AGG</code> (+ <code>BIT_AND</code>/<code>BIT_OR</code>), <code>ARRAY_AGG</code></td></tr>
 <tr><td>DML</td><td><code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code> (text with <code>?</code> parameters)</td></tr>
@@ -47,6 +50,7 @@
 <p class="sub">So the <a href="../sql/">SQL mirror</a> is not a promise about what runs — it documents H2's full grammar, while the engine executes the subset above:</p>
 <ul>
 <li><code>JOIN</code>, subqueries, window functions (<code>OVER</code>/<code>FILTER</code>), <code>MERGE</code>, <code>MERGE USING</code>, <code>EXPLAIN</code> — the window frame machinery is ported, window functions are not</li>
+<li>The <code>SAVEPOINT</code> statement — row operations use an <i>internal</i> savepoint, which is not the SQL command</li>
 <li>Sequences in DDL; the <code>INFORMATION_SCHEMA</code> catalogue</li>
 <li><b>File databases</b> and async <code>OpenAsync</code> — in-memory only today</li>
 <li>Constraints and rights, EF Core</li>
