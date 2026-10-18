@@ -15,9 +15,11 @@
 <tr><td>Aggregates: <code>JSON_ARRAYAGG</code>, <code>JSON_OBJECTAGG</code>, <code>HISTOGRAM</code>, <code>MODE</code></td><td>JSON aggregates build straight into bytes; <code>HISTOGRAM</code>/<code>MODE</code> on a value-to-count map.</td></tr>
 <tr><td>Window frame units, bound types, exclusions</td><td>The frame machinery is ported. Window <i>functions</i> (<code>OVER</code>/<code>FILTER</code>) still are not.</td></tr>
 <tr><td><code>UPDATE</code> SET list</td><td>Built from the reference's update-action array.</td></tr>
-<tr><td>Row operations on a transaction</td><td>DML runs on the session transaction with an internal savepoint, and <code>DbTransaction</code> auto-commit is fixed — so a rollback takes back what a statement did.</td></tr>
+<tr><td>Statements commit at the reference's points</td><td>The reference's <code>stop</code> and <code>commitIfNonTransactional</code> are ported, so a single <code>INSERT</code>/<code>UPDATE</code>/<code>DELETE</code> is durable on its own and <strong>DDL commits its transaction</strong>.</td></tr>
+<tr><td><code>CREATE TABLE … PRIMARY KEY</code></td><td>Creates, names and drops the index the way H2 does — the <code>PRIMARY_KEY_</code> prefix, and the same name back when the table is recreated, as on the JVM.</td></tr>
 <tr><td>LIKE / REGEXP semantics</td><td>Semantics suites pass; the default LIKE escape and <code>IN</code> parameter binding were fixed.</td></tr>
-<tr><td>Allocation work</td><td>Pooled page scratches, one <code>Bits.Reverse</code> for the MVStore byte helpers, the pattern <code>Regex</code> cached once, digit appends without an intermediate string.</td></tr>
+<tr><td>Allocation work</td><td>Pooled page scratches, one <code>Bits.Reverse</code> for the MVStore byte helpers, the pattern <code>Regex</code> cached once, digit appends without an intermediate string, numeric conversion delegates hoisted to statics.</td></tr>
+<tr><td>Differential harness</td><td>Oracle snippets compile once into a per-machine cache and run from it, so the JVM side costs nothing per repeat.</td></tr>
 </table>
 
 <h3 id="phases">Phases</h3>
@@ -51,6 +53,7 @@
 <ul>
 <li><code>JOIN</code>, subqueries, window functions (<code>OVER</code>/<code>FILTER</code>), <code>MERGE</code>, <code>MERGE USING</code>, <code>EXPLAIN</code> — the window frame machinery is ported, window functions are not</li>
 <li>The <code>SAVEPOINT</code> statement — row operations use an <i>internal</i> savepoint, which is not the SQL command</li>
+<li>The reference's statement scope, savepoint wrapping and rollback of a failed attempt — the comments in <code>Command.cs</code> say so outright; <code>ExecuteQuery</code> and batch execution still refuse</li>
 <li>Sequences in DDL; the <code>INFORMATION_SCHEMA</code> catalogue</li>
 <li><b>File databases</b> and async <code>OpenAsync</code> — in-memory only today</li>
 <li>Constraints and rights, EF Core</li>
