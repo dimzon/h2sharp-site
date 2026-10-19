@@ -7,13 +7,14 @@
 <div class="version-banner"><b>What it is:</b> a fork of <b>EFCore.PG</b> (Npgsql's provider for PostgreSQL), with PostgreSQL's surface replaced by H2's — the type mappings, the migrations SQL generator, the connection and the DDL are H2's. PostgreSQL-only features went with it: ranges, multiranges, network address types, full-text search, PostGIS. The point of forking rather than writing a provider is to keep <b>EF Core's own specification suite</b> as the measure: the tests are inherited from EF Core, not written for H2.</div>
 
 <h3 id="measurement">Measurement</h3>
-<p class="sub">Run against the pinned reference engine (<code>h2-2.5.259-SNAPSHOT.jar</code>), not against the port:</p>
+<p class="sub">Run against the pinned reference engine (<code>h2-2.5.259-SNAPSHOT.jar</code>), not against the port — a test against the port would only prove the port agrees with itself. The suite is split by trait, and <b>both runs are needed</b>:</p>
 <table class="ref">
-<tr><th>Suite</th><th>Passed</th><th>Failed</th><th>Total</th></tr>
-<tr><td><code>H2Sharp.EntityFrameworkCore.FunctionalTests</code></td><td>941</td><td>175</td><td>1118</td></tr>
-<tr><td><code>H2Sharp.EntityFrameworkCore.Tests</code></td><td>111</td><td>0</td><td>111</td></tr>
+<tr><th>Run</th><th>Passed</th><th>Failed</th><th>Total</th></tr>
+<tr><td><code>dotnet test --filter "Category!=BlockedByPort"</code> — the provider is correct as far as the port allows</td><td>1032</td><td><b>0</b></td><td>1032</td></tr>
+<tr><td><code>dotnet test --filter "Category=BlockedByPort"</code> — the port defects the provider has signed up for</td><td>20</td><td>175</td><td>197</td></tr>
 <tr><td><b>Total</b></td><td><b>1052</b></td><td><b>175</b></td><td><b>1227</b></td></tr>
 </table>
+<p class="sub">A test that fails because a function was not ported stays in the suite, tagged <code>BlockedByPort</code>: removing it would take away the only signal that the port has not yet caught up with H2.</p>
 
 <div class="version-banner"><b>The rule of the registry:</b> the provider does <b>not</b> bend to the engine's current gaps. It generates what H2 2.5 requires and records the divergence — an accommodation would be a temporary fix that pins a temporary limitation into observable behaviour.</div>
 
