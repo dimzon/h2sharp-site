@@ -11,3 +11,4 @@ One file per topic: syntax (BNF), description, example.
 - [Data Types](datatypes.md) — 42 topics
 - [SQL Grammar](grammar.md) — 147 topics
 - [System Tables](systemtables.md) — 37 topics
+- [Cheat Sheet](cheatSheet.md) — 0 topics

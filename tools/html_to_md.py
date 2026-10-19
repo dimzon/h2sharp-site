@@ -22,11 +22,12 @@ RAW = ROOT / "raw"
 OUT = ROOT / "md"
 
 MIRRORED = ["commands", "functions", "functions-aggregate", "functions-window",
-            "datatypes", "grammar", "systemtables"]
+            "datatypes", "grammar", "systemtables", "cheatSheet"]
 PAGE_TITLE = {
     "commands": "Commands", "functions": "Functions",
     "functions-aggregate": "Aggregate Functions", "functions-window": "Window Functions",
     "datatypes": "Data Types", "grammar": "SQL Grammar", "systemtables": "System Tables",
+    "cheatSheet": "Cheat Sheet",
 }
 BOILERPLATE = ("Click on the header", "Non-standard syntax is marked")
 
@@ -118,10 +119,16 @@ class BlockParser(HTMLParser):
 
 def inline_md(s: str, cur_page: str) -> str:
     """Convert inline HTML to Markdown: links, code, breaks."""
-    # upstream artifacts: [text](<a href="URL">URL[)]</a>) [)] -> [text](URL)
-    s = re.sub(r"\]\(\s*<a\s+href=\"([^\"]+)\"[^>]*>[^<]*</a>\s*\)?", r"](\1)", s)
+    # upstream artifact: a markdown link whose href absorbed the closing paren,
+    # then got re-wrapped as HTML: [text](<a href="URL)">URL</a>. Rewrite it back
+    # into a plain anchor so link() below resolves it to a local .md file.
+    s = re.sub(r"\[([^\]]+)\]\(<a\s+href=\"([^\"]+?)\)\"[^>]*>[^<]*</a>",
+               lambda m: f'<a href="{m.group(2)}">{m.group(1)}</a>', s)
     def link(m: "re.Match[str]") -> str:
         href, text = m.group(1), ihtml.unescape(re.sub(r"<[^>]+>", "", m.group(2))).strip()
+        # absolute upstream URLs to mirrored pages behave like local ones
+        if href.startswith("https://www.h2database.com/html/"):
+            href = href[len("https://www.h2database.com/html/"):]
         mm = re.match(r"(?:([a-z0-9-]+)\.html)?(?:#([A-Za-z0-9_]+))?$", href)
         if mm and (mm.group(1) in MIRRORED or (mm.group(1) is None and mm.group(2))):
             page = mm.group(1) or cur_page

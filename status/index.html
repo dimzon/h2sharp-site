@@ -17,6 +17,8 @@
 <tr><td><code>UPDATE</code> SET list</td><td>Built from the reference's update-action array.</td></tr>
 <tr><td>Statements commit at the reference's points</td><td>The reference's <code>stop</code> and <code>commitIfNonTransactional</code> are ported, so a single <code>INSERT</code>/<code>UPDATE</code>/<code>DELETE</code> is durable on its own and <strong>DDL commits its transaction</strong>.</td></tr>
 <tr><td><code>CREATE TABLE … PRIMARY KEY</code></td><td>Creates, names and drops the index the way H2 does — the <code>PRIMARY_KEY_</code> prefix, and the same name back when the table is recreated, as on the JVM.</td></tr>
+<tr><td>Constraints are schema objects</td><td>Named and table-level <code>PRIMARY KEY</code>s own their index and the <code>23505</code> duplicate-key prefix; <code>ALTER TABLE</code> adds and drops them and frees their names.</td></tr>
+<tr><td><code>CREATE INDEX</code> / <code>DROP INDEX</code></td><td>Ported over the full <code>MVSecondaryIndex</code> and its row factories.</td></tr>
 <tr><td>LIKE / REGEXP semantics</td><td>Semantics suites pass; the default LIKE escape and <code>IN</code> parameter binding were fixed.</td></tr>
 <tr><td>Allocation work</td><td>Pooled page scratches, one <code>Bits.Reverse</code> for the MVStore byte helpers, the pattern <code>Regex</code> cached once, digit appends without an intermediate string, numeric conversion delegates hoisted to statics.</td></tr>
 <tr><td>Differential harness</td><td>Oracle snippets compile once into a per-machine cache and run from it, so the JVM side costs nothing per repeat.</td></tr>
@@ -45,8 +47,24 @@
 <tr><td>Parameters</td><td><code>?</code> placeholders, and <code>@name</code> rewritten</td></tr>
 <tr><td>Aggregates</td><td><code>COUNT</code>/<code>COUNT(*)</code>, <code>SUM</code>, <code>MIN</code>, <code>MAX</code>, <code>AVG</code>, <code>STDDEV*</code>, <code>VAR*</code>, <code>ANY</code>/<code>EVERY</code>, <code>MEDIAN</code>, <code>ANY_VALUE</code>, <code>HISTOGRAM</code>, <code>MODE</code>, <code>PERCENTILE_CONT</code>/<code>DISC</code>, <code>LISTAGG</code> (+ <code>GROUP_CONCAT</code>/<code>STRING_AGG</code>), <code>JSON_ARRAYAGG</code>/<code>JSON_OBJECTAGG</code>, <code>REGR_*</code> (count, avgx, avgy, sxx, syy, slope, intercept, r2, sxy), <code>COVAR_*</code>, <code>CORR</code>, <code>BIT_*_AGG</code> (+ <code>BIT_AND</code>/<code>BIT_OR</code>), <code>ARRAY_AGG</code></td></tr>
 <tr><td>DML</td><td><code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code> (text with <code>?</code> parameters)</td></tr>
-<tr><td>DDL</td><td><code>CREATE TABLE</code> (columns + inline PK), <code>DROP TABLE</code>, <code>CREATE INDEX</code>, <code>ALTER TABLE</code> (partial)</td></tr>
+<tr><td>DDL</td><td><code>CREATE TABLE</code> (columns + inline PK), <code>DROP TABLE</code>, <code>CREATE INDEX</code>, <code>DROP INDEX</code>, <code>ALTER TABLE</code> (adding and dropping PK constraints) — <code>ALTER TABLE</code> is partial</td></tr>
 </table>
+
+<h3 id="conformance">SQL conformance suite</h3>
+<p class="sub">The repo now carries <a href="https://github.com/dimzon/h2sharp/tree/main/tests/H2SharpSql.Specs"><code>tests/H2SharpSql.Specs</code></a> — <b>947 tests</b>, one per documented SQL construct, each anchored to a <i>line number</i> in the frozen snapshot the repo keeps in <code>docs/</code>. It is deliberately <b>not</b> part of <code>H2Sharp.sln</code>: while the port is young it shows hundreds of failures, and the daily ritual <code>dotnet test H2Sharp.sln</code> should not depend on it.</p>
+<table class="ref">
+<tr><th>Area</th><th>Tests</th><th>Passing at first run (2026-10-19)</th></tr>
+<tr><td><code>Commands/</code></td><td>254</td><td>11</td></tr>
+<tr><td><code>Functions/</code></td><td>325</td><td>33</td></tr>
+<tr><td><code>Grammar/</code></td><td>263</td><td>46</td></tr>
+<tr><td><code>Datatypes/</code></td><td>66</td><td>10</td></tr>
+<tr><td><code>SystemTables/</code></td><td>37</td><td>0</td></tr>
+<tr><td><code>Dml/</code></td><td>2</td><td>2</td></tr>
+<tr><td><b>Total</b></td><td><b>947</b></td><td><b>102</b></td></tr>
+</table>
+<p class="sub">The biggest gaps by failure count: <code>EXTRACT</code> in the parser (66), <code>FILTER</code>/<code>OVER</code> (35), <code>INFORMATION_SCHEMA</code> as a table (25), <code>CREATE DOMAIN</code> (15), <code>ALTER TABLE</code> beyond <code>ADD</code>/<code>DROP CONSTRAINT</code> (12), <code>YEAR</code> (12), derived tables (12), <code>CREATE ROLE</code> (11), <code>HOUR</code> (10), table constraints other than <code>PRIMARY KEY</code> (9), <code>CREATE SEQUENCE</code> (8).</p>
+
+<div class="version-banner"><b>Why the numbers differ from the site's mirror:</b> the frozen docs are H2 <code>2.5.252</code>, while the reference checkout the port is written against is <code>2.5.259-SNAPSHOT</code> (<code>reference/H2_COMMIT.txt</code>). On a disagreement <b>the reference wins</b>, not the snapshot. This site's mirror is the same 8 files the repo commits, verified byte-for-byte — <code>python tools/verify-snapshot.py</code>.</div>
 
 <h3 id="not-yet">Not yet</h3>
 <p class="sub">So the <a href="../sql/">SQL mirror</a> is not a promise about what runs — it documents H2's full grammar, while the engine executes the subset above:</p>
@@ -57,6 +75,8 @@
 <li>Sequences in DDL; the <code>INFORMATION_SCHEMA</code> catalogue</li>
 <li><b>File databases</b> and async <code>OpenAsync</code> — in-memory only today</li>
 <li>Constraints and rights, EF Core</li>
+<li>Table constraints other than <code>PRIMARY KEY</code>; <code>CREATE SEQUENCE</code>, <code>CREATE DOMAIN</code>, <code>CREATE ROLE</code></li>
+<li><code>INFORMATION_SCHEMA</code> as a queryable table — <strong>0 of 37</strong> system-table tests pass</li>
 </ul>
 
 <h3 id="tests">Tests</h3>

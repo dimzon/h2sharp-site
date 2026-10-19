@@ -46,7 +46,19 @@
       "url": "https://www.h2database.com/html/systemtables.html",
       "sha256": "62aba1b47110340c400f51afaaa184545f4ae0dd0157a6e27cb9953425317ddd",
       "bytes": 84003
+    },
+    {
+      "name": "cheatSheet",
+      "url": "https://www.h2database.com/html/cheatSheet.html",
+      "sha256": "ddc22ed8bfa0a460d3afec18173242d6d21284aa4a795ee81417b13b696927d1",
+      "bytes": 7669,
+      "fetchedAt": "2026-10-19",
+      "note": "added later to complete the 8-file manifest that dimzon/h2sharp commits in docs/; sha256 identical to its docs/manifest.csv"
     }
   ],
+  "crossCheck": {
+    "against": "dimzon/h2sharp docs/manifest.csv",
+    "result": "8/8 files byte-identical; verify with: python tools/verify-snapshot.py"
+  },
   "ua": "H2Sharp-docs-mirror (+https://github.com/dimzon/h2sharp-site; SQL ref snapshot)"
 }

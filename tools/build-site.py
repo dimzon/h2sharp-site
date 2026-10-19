@@ -35,18 +35,30 @@ TITLES = {
 
 
 def extract(raw: str) -> str:
+    """Pull the content region out of a built H2 page.
+
+    Reference pages wrap their body in <div class="content"> ... <!-- } -->.
+    cheatSheet.html has neither — it is a plain <body> with inline styles — so
+    it falls back to the whole body, minus scripts and the search menu.
+    """
     start = raw.find('<div class="content">')
-    if start < 0:
-        raise ValueError("content div not found")
-    start = raw.find(">", start) + 1
-    end = raw.rfind("<!-- } -->")
-    if end < 0 or end <= start:
-        raise ValueError("end marker not found")
-    return raw[start:end]
+    if start >= 0:
+        start = raw.find(">", start) + 1
+        end = raw.rfind("<!-- } -->")
+        if end > start:
+            return raw[start:end]
+    body = raw.find("<body")
+    if body < 0:
+        raise ValueError("no content div and no body")
+    body = raw.find(">", body) + 1
+    tail = raw.find("</body>")
+    chunk = raw[body:tail if tail > body else len(raw)]
+    chunk = re.sub(r"<script\b.*?</script>", "", chunk, flags=re.S)
+    return chunk
 
 
 MIRRORED = ["commands", "functions", "functions-aggregate", "functions-window",
-            "datatypes", "grammar", "systemtables"]
+            "datatypes", "grammar", "systemtables", "cheatSheet"]
 
 
 def clean(body: str) -> str:
