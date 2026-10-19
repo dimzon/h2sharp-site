@@ -15,6 +15,8 @@
 <tr><td>Aggregates: <code>JSON_ARRAYAGG</code>, <code>JSON_OBJECTAGG</code>, <code>HISTOGRAM</code>, <code>MODE</code></td><td>JSON aggregates build straight into bytes; <code>HISTOGRAM</code>/<code>MODE</code> on a value-to-count map.</td></tr>
 <tr><td>Window frame units, bound types, exclusions</td><td>The frame machinery is ported. Window <i>functions</i> (<code>OVER</code>/<code>FILTER</code>) still are not.</td></tr>
 <tr><td><code>UPDATE</code> SET list</td><td>Built from the reference's update-action array.</td></tr>
+<tr><td>Built-in functions</td><td>A function dispatcher plus the built-ins: <code>ABS</code>, <code>MOD</code>, <code>FLOOR</code>/<code>CEIL</code>/<code>ROUND</code>/<code>TRUNC</code>, the trigonometry, <code>LN</code>/<code>EXP</code>/<code>SQRT</code>/<code>LOG</code>/<code>POWER</code>, the whole bit family (<code>BITAND</code>…<code>ROTATERIGHT</code>), <code>EXTRACT</code>, <code>DATE_TRUNC</code>, <code>DATEADD</code>/<code>DATEDIFF</code>, <code>FORMATDATETIME</code>/<code>PARSEDATETIME</code>, <code>DAYNAME</code>/<code>MONTHNAME</code>, the string family (<code>UPPER</code>…<code>SUBSTRING</code>, <code>TRIM</code>, <code>LPAD</code>/<code>RPAD</code>, <code>REPLACE</code>, <code>REGEXP_*</code>, <code>SOUNDEX</code>/<code>DIFFERENCE</code>), <code>XML*</code>, <code>JSON_OBJECT</code>/<code>JSON_ARRAY</code>, array functions, <code>COMPRESS</code>/<code>EXPAND</code>, <code>CONCAT</code>, <code>COALESCE</code>, <code>NULLIF</code>, <code>RANDOM</code>.</td></tr>
+<tr><td><code>AS</code> in a table alias</td><td>Parsed and pinned against the reference's answers. The <i>implicit</i> alias (<code>FROM T e</code>) worked before; note that <i>bare column</i> aliases still refuse.</td></tr>
 <tr><td>Statements commit at the reference's points</td><td>The reference's <code>stop</code> and <code>commitIfNonTransactional</code> are ported, so a single <code>INSERT</code>/<code>UPDATE</code>/<code>DELETE</code> is durable on its own and <strong>DDL commits its transaction</strong>.</td></tr>
 <tr><td><code>CREATE TABLE … PRIMARY KEY</code></td><td>Creates, names and drops the index the way H2 does — the <code>PRIMARY_KEY_</code> prefix, and the same name back when the table is recreated, as on the JVM.</td></tr>
 <tr><td>Constraints are schema objects</td><td>Named and table-level <code>PRIMARY KEY</code>s own their index and the <code>23505</code> duplicate-key prefix; <code>ALTER TABLE</code> adds and drops them and frees their names.</td></tr>
@@ -66,6 +68,16 @@
 
 <div class="version-banner"><b>Why the numbers differ from the site's mirror:</b> the frozen docs are H2 <code>2.5.252</code>, while the reference checkout the port is written against is <code>2.5.259-SNAPSHOT</code> (<code>reference/H2_COMMIT.txt</code>). On a disagreement <b>the reference wins</b>, not the snapshot. This site's mirror is the same 8 files the repo commits, verified byte-for-byte — <code>python tools/verify-snapshot.py</code>.</div>
 
+<h3 id="efcore">The EF Core provider</h3>
+<p class="sub">It lives in its own repository, <a href="https://github.com/dimzon/h2sharp-efcore">dimzon/h2sharp-efcore</a> <span class="badge plan">private</span> — a fork of <b>EFCore.PG</b> with PostgreSQL's surface replaced by H2's, keeping EF Core's own specification suite as the measure. <b>1052 of 1227</b> inherited tests pass against the pinned reference engine.</p>
+<table class="ref">
+<tr><th>Suite</th><th>Passed</th><th>Failed</th><th>Total</th></tr>
+<tr><td><code>FunctionalTests</code></td><td>941</td><td>175</td><td>1118</td></tr>
+<tr><td><code>Tests</code></td><td>111</td><td>0</td><td>111</td></tr>
+<tr><td><b>Total</b></td><td><b>1052</b></td><td><b>175</b></td><td><b>1227</b></td></tr>
+</table>
+<p class="sub">The provider does not bend to the engine's gaps — it generates what H2 2.5 requires and records the divergence. The engine gaps it is waiting on are numbered in its <code>docs/DIVERGENCES.md</code>: quoted column references, <code>AS</code> aliases (now landed), <code>GENERATED … AS IDENTITY</code>, <code>FOREIGN KEY</code> in <code>CREATE TABLE</code>, <code>INTERVAL</code> types, <code>DB_CLOSE_DELAY</code>, the <code>INFORMATION_SCHEMA</code> catalogue, and <code>CREATE SEQUENCE</code>.</p>
+
 <h3 id="not-yet">Not yet</h3>
 <p class="sub">So the <a href="../sql/">SQL mirror</a> is not a promise about what runs — it documents H2's full grammar, while the engine executes the subset above:</p>
 <ul>
@@ -77,6 +89,7 @@
 <li>Constraints and rights, EF Core</li>
 <li>Table constraints other than <code>PRIMARY KEY</code>; <code>CREATE SEQUENCE</code>, <code>CREATE DOMAIN</code>, <code>CREATE ROLE</code></li>
 <li><code>INFORMATION_SCHEMA</code> as a queryable table — <strong>0 of 37</strong> system-table tests pass</li>
+<li>Quoted column references (<code>SELECT "e"."Id"</code>) — the query layer's resolver is not ported</li>
 </ul>
 
 <h3 id="tests">Tests</h3>

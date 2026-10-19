@@ -1,4 +1,68 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>EF Core (planned) — H2Sharp</title><link rel="icon" type="image/svg+xml" href="../assets/favicon.svg"><link rel="stylesheet" href="../assets/site.css"></head><body>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>EF Core — H2Sharp</title><link rel="icon" type="image/svg+xml" href="../assets/favicon.svg"><link rel="stylesheet" href="../assets/site.css"></head><body>
 <header class="site-header"><div class="wrap"><a class="brand" href="../" style="text-decoration:none"><img src="../assets/logo.svg" alt="">H2Sharp <small>in progress</small></a><nav class="main"><a href="../">Home</a><a href="../sql/">SQL</a><a href="./" class="active">.NET API</a><a href="../status/">Status</a></nav></div></header>
-<main class="wrap"><section class="block"><h2>EF Core / EFLinq <span class="badge plan">planned</span></h2><p class="sub"><code>H2Sharp.EntityFrameworkCore</code> package (phase 9): <code>ISqlGenerationHelper</code>, type mappings, <code>IRelationalConnection</code>, <code>IMigrationsSqlGenerator</code>, sequences/identity.</p><div class="version-banner">Gates: phase 8 (provider — <b>closed</b>, transactions included) → phase 9: SQL generation, migrations, sequences/identity. LINQ samples (EFLinq) will live here too.</div></section></main>
-<footer><div class="wrap"><span>This section arrives once the API stabilizes.</span><span style="margin-left:auto"><a href="./">← .NET API</a></span></div></footer></body></html>
+<main class="wrap"><section class="block">
+<h2>EF Core <span class="badge ok">in progress</span></h2>
+<p class="sub">The Entity Framework Core provider lives in its own repository, <a href="https://github.com/dimzon/h2sharp-efcore">dimzon/h2sharp-efcore</a> <span class="badge plan">private</span> — it is a fork, and its own history and release cycle are separate from the engine's.</p>
+
+<div class="version-banner"><b>What it is:</b> a fork of <b>EFCore.PG</b> (Npgsql's provider for PostgreSQL), with PostgreSQL's surface replaced by H2's — the type mappings, the migrations SQL generator, the connection and the DDL are H2's. PostgreSQL-only features went with it: ranges, multiranges, network address types, full-text search, PostGIS. The point of forking rather than writing a provider is to keep <b>EF Core's own specification suite</b> as the measure: the tests are inherited from EF Core, not written for H2.</div>
+
+<h3 id="measurement">Measurement</h3>
+<p class="sub">Run against the pinned reference engine (<code>h2-2.5.259-SNAPSHOT.jar</code>), not against the port:</p>
+<table class="ref">
+<tr><th>Suite</th><th>Passed</th><th>Failed</th><th>Total</th></tr>
+<tr><td><code>H2Sharp.EntityFrameworkCore.FunctionalTests</code></td><td>941</td><td>175</td><td>1118</td></tr>
+<tr><td><code>H2Sharp.EntityFrameworkCore.Tests</code></td><td>111</td><td>0</td><td>111</td></tr>
+<tr><td><b>Total</b></td><td><b>1052</b></td><td><b>175</b></td><td><b>1227</b></td></tr>
+</table>
+
+<div class="version-banner"><b>The rule of the registry:</b> the provider does <b>not</b> bend to the engine's current gaps. It generates what H2 2.5 requires and records the divergence — an accommodation would be a temporary fix that pins a temporary limitation into observable behaviour.</div>
+
+<h3 id="using">Using it</h3>
+<pre class="mini"><code><span class="tok-k">await using var</span> ctx = <span class="tok-k">new</span> BlogContext();
+<span class="tok-k">await</span> ctx.Database.EnsureDeletedAsync();
+<span class="tok-k">await</span> ctx.Database.EnsureCreatedAsync();
+
+ctx.Blogs.Add(<span class="tok-k">new</span>() { Name = <span class="tok-s">"FooBlog"</span> });
+<span class="tok-k">await</span> ctx.SaveChangesAsync();
+
+<span class="tok-k">var</span> fBlogs = <span class="tok-k">await</span> ctx.Blogs.Where(b =&gt; b.Name.StartsWith(<span class="tok-s">"F"</span>)).ToListAsync();
+
+<span class="tok-k">public class</span> BlogContext : DbContext
+{
+    <span class="tok-k">public</span> DbSet&lt;Blog&gt; Blogs { get; set; }
+
+    <span class="tok-k">protected override void</span> OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        =&gt; optionsBuilder.UseH2(<span class="tok-s">"Data Source=mem:mydatabase"</span>);
+}</code></pre>
+<p class="sub">The connection string is the ADO.NET spelling: <code>Data Source=mem:mydatabase</code> is translated to <code>jdbc:h2:mem:mydatabase</code>, and a JDBC URL is accepted as it is.</p>
+
+<h3 id="functions">H2's own functions</h3>
+<p class="sub"><code>EF.Functions</code> reaches the database's built-ins — the date/time, string, binary, number and bit ones — each checked against the engine:</p>
+<pre class="mini"><code>EF.Functions.DateAdd(<span class="tok-s">"DAY"</span>, 1, blog.Created)   <span class="tok-c">// DATEADD('DAY', 1, ...)</span>
+EF.Functions.Locate(blog.Name, <span class="tok-s">"foo"</span>)           <span class="tok-c">// LOCATE(...) — H2 takes the substring first</span>
+EF.Functions.Extract(<span class="tok-s">"YEAR"</span>, blog.Created)      <span class="tok-c">// YEAR(...)</span>
+EF.Functions.LeftPad(blog.Name, 10, <span class="tok-s">"0"</span>)        <span class="tok-c">// LPAD(...)</span></code></pre>
+
+<h3 id="gaps">Engine gaps the provider is waiting on</h3>
+<p class="sub">Numbered in the provider's own <code>docs/DIVERGENCES.md</code>, where each one says who has to fix it:</p>
+<table class="ref">
+<tr><th>#</th><th>Gap</th><th>Symptom</th></tr>
+<tr><td>1</td><td>Quoted column reference</td><td><code>SELECT "e"."Id" FROM T</code> → <code>SessionLocal.getResolver: the query layer is not ported</code></td></tr>
+<tr><td>2</td><td>Table alias through <code>AS</code></td><td>the implicit alias (<code>FROM T e</code>) works; <code>FROM T AS "e"</code> is what the provider needs</td></tr>
+<tr><td>3</td><td><code>GENERATED … AS IDENTITY</code></td><td>the parser rejects <code>GENERATED</code>; the object model already knows identity columns</td></tr>
+<tr><td>4</td><td><code>FOREIGN KEY</code> in <code>CREATE TABLE</code></td><td>constraints — ROADMAP phase 7</td></tr>
+<tr><td>5</td><td><code>INTERVAL</code> types</td><td>the parser does not know them; without the qualifier <code>INTERVAL</code> is not a type</td></tr>
+<tr><td>6</td><td><code>DB_CLOSE_DELAY</code> for an in-memory database</td><td>the database disappears with the last connection, so <code>EnsureCreated</code> cannot work</td></tr>
+<tr><td>7</td><td><code>INFORMATION_SCHEMA</code></td><td>the catalogue — without it scaffolding and the schema registry are impossible</td></tr>
+<tr><td>8</td><td><code>CREATE SEQUENCE</code>, <code>NEXT VALUE FOR</code></td><td>the parser does not know them; needed for key generation if identity does not arrive</td></tr>
+</table>
+
+<h3 id="also">Also in that repository</h3>
+<ul>
+<li><b>Plugins</b> for <code>NodaTime</code> and <code>NetTopologySuite</code>, ported onto EF value converters.</li>
+<li><b>Docs</b>: <code>docs/DIVERGENCES.md</code> (what differs from EF Core and from H2), <code>docs/DIALECT.md</code> (the SQL it generates), <code>docs/ROADMAP.md</code> (the plan), <code>UPSTREAM.md</code> (the EFCore.PG commit it forks from).</li>
+<li><b>Still to do</b>: the ADO layer is the <code>Npgsql</code> package for now; swapping it for <code>H2Sharp.Data</code> is a separate stage.</li>
+<li>License: the fork keeps <b>EFCore.PG's PostgreSQL License</b>; the engine itself is MPL-2.0 / EPL-1.0 and is not part of that repository.</li>
+</ul>
+</section></main>
+<footer><div class="wrap"><span>H2Sharp · EF Core provider in its own repository</span><span style="margin-left:auto"><a href="./">← .NET API</a></span></div></footer></body></html>
