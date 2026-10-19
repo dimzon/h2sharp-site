@@ -69,7 +69,7 @@
 <div class="version-banner"><b>Why the numbers differ from the site's mirror:</b> the frozen docs are H2 <code>2.5.252</code>, while the reference checkout the port is written against is <code>2.5.259-SNAPSHOT</code> (<code>reference/H2_COMMIT.txt</code>). On a disagreement <b>the reference wins</b>, not the snapshot. This site's mirror is the same 8 files the repo commits, verified byte-for-byte — <code>python tools/verify-snapshot.py</code>.</div>
 
 <h3 id="efcore">The EF Core provider</h3>
-<p class="sub">It lives in its own repository, <a href="https://github.com/dimzon/h2sharp-efcore">dimzon/h2sharp-efcore</a> <span class="badge plan">private</span> — a fork of <b>EFCore.PG</b> with PostgreSQL's surface replaced by H2's, keeping EF Core's own specification suite as the measure. <b>1052 of 1227</b> inherited tests pass against the pinned reference engine.</p>
+<p class="sub">It lives in its own repository, <a href="https://github.com/dimzon/h2sharp-efcore">dimzon/h2sharp-efcore</a> — a fork of <b>EFCore.PG</b> with PostgreSQL's surface replaced by H2's, keeping EF Core's own specification suite as the measure. <b>1052 of 1227</b> inherited tests pass against the pinned reference engine.</p>
 <table class="ref">
 <tr><th>Suite</th><th>Passed</th><th>Failed</th><th>Total</th></tr>
 <tr><td><code>FunctionalTests</code></td><td>941</td><td>175</td><td>1118</td></tr>

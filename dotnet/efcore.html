@@ -2,7 +2,7 @@
 <header class="site-header"><div class="wrap"><a class="brand" href="../" style="text-decoration:none"><img src="../assets/logo.svg" alt="">H2Sharp <small>in progress</small></a><nav class="main"><a href="../">Home</a><a href="../sql/">SQL</a><a href="./" class="active">.NET API</a><a href="../status/">Status</a></nav></div></header>
 <main class="wrap"><section class="block">
 <h2>EF Core <span class="badge ok">in progress</span></h2>
-<p class="sub">The Entity Framework Core provider lives in its own repository, <a href="https://github.com/dimzon/h2sharp-efcore">dimzon/h2sharp-efcore</a> <span class="badge plan">private</span> — it is a fork, and its own history and release cycle are separate from the engine's.</p>
+<p class="sub">The Entity Framework Core provider lives in its own repository, <a href="https://github.com/dimzon/h2sharp-efcore">dimzon/h2sharp-efcore</a> — it is a fork, and its own history and release cycle are separate from the engine's.</p>
 
 <div class="version-banner"><b>What it is:</b> a fork of <b>EFCore.PG</b> (Npgsql's provider for PostgreSQL), with PostgreSQL's surface replaced by H2's — the type mappings, the migrations SQL generator, the connection and the DDL are H2's. PostgreSQL-only features went with it: ranges, multiranges, network address types, full-text search, PostGIS. The point of forking rather than writing a provider is to keep <b>EF Core's own specification suite</b> as the measure: the tests are inherited from EF Core, not written for H2.</div>
 
