@@ -2,6 +2,8 @@
 
 > H2 `2.5.252` mirror + pin `27c5170` · [Original](https://www.h2database.com/html/systemtables.html) · © H2 Group
 
+## System Tables
+
 - [Information Schema](systemtables/information_schema.md)
 - [CHECK_CONSTRAINTS](systemtables/information_schema_check_constraints.md)
 - [COLLATIONS](systemtables/information_schema_collations.md)

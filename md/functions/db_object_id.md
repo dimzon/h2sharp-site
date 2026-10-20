@@ -7,7 +7,7 @@
 ```bnf
 DB_OBJECT_ID({{'ROLE'|'SETTING'|'SCHEMA'|'USER'}, [`objectNameString`](../grammar/string.md)
 | {'CONSTANT'|'CONSTRAINT'|'DOMAIN'|'INDEX'|'ROUTINE'|'SEQUENCE'
-    |'SYNONYM'|'TABLE'|'TRIGGER'}, [`schemaNameString`](../grammar/string.md), [`objectNameString`](../grammar/string.md) })
+ |'SYNONYM'|'TABLE'|'TRIGGER'}, [`schemaNameString`](../grammar/string.md), [`objectNameString`](../grammar/string.md) })
 ```
 
 🟢 includes non-standard H2 syntax

@@ -10,7 +10,7 @@
 [ ( [`lengthLong`](../grammar/long.md) [K|M|G|T|P] [CHARACTERS|OCTETS]) ]
 ```
 
-`CHARACTER LARGE OBJECT` is intended for very large Unicode character string values. Unlike when using [CHARACTER VARYING](character_varying_type.md), large `CHARACTER LARGE OBJECT` values are not kept fully in-memory; instead, they are streamed. `CHARACTER LARGE OBJECT` should be used for documents and texts with arbitrary size such as XML or HTML documents, text files, or memo fields of unlimited size. Use `PreparedStatement.setCharacterStream` to store values. See also Large Objects section.
+`CHARACTER LARGE OBJECT` is intended for very large Unicode character string values. Unlike when using [CHARACTER VARYING](character_varying_type.md), large `CHARACTER LARGE OBJECT` values are not kept fully in-memory; instead, they are streamed. `CHARACTER LARGE OBJECT` should be used for documents and texts with arbitrary size such as XML or HTML documents, text files, or memo fields of unlimited size. Use `PreparedStatement.setCharacterStream` to store values. See also [Large Objects](https://www.h2database.com/html/advanced.html#large_objects) section.
 
 `CHARACTER VARYING` should be used for text with relatively short average size (for example shorter than 200 characters). Short `CHARACTER LARGE OBJECT` values are stored inline, but there is an overhead compared to `CHARACTER VARYING`.
 

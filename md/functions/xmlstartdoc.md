@@ -10,7 +10,7 @@ XMLSTARTDOC()
 
 🟢 includes non-standard H2 syntax
 
-Returns the XML declaration. The result is always ``.
+Returns the XML declaration. The result is always `<?xml version=`1.0`?>`.
 
 ## Example
 

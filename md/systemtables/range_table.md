@@ -15,3 +15,12 @@ If step in negative the last value is greater than or equal to the specified end
 The table is used as follows:
 
 Examples:
+
+SELECT X FROM SYSTEM_RANGE(1, 10);
+-- 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+SELECT X FROM SYSTEM_RANGE(1, 10, 2);
+-- 1, 3, 5, 7, 9
+SELECT X FROM SYSTEM_RANGE(1, 10, -1);
+-- No rows
+SELECT X FROM SYSTEM_RANGE(10, 2, -2);
+-- 10, 8, 6, 4, 2

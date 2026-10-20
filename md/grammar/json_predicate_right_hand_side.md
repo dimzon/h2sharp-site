@@ -6,7 +6,7 @@
 
 ```bnf
 IS [ NOT ] JSON [ VALUE | ARRAY | OBJECT | SCALAR ]
-    [ [ WITH | WITHOUT ] UNIQUE [ KEYS ] ]
+ [ [ WITH | WITHOUT ] UNIQUE [ KEYS ] ]
 ```
 
 Right side of `JSON` predicate.

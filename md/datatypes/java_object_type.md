@@ -16,7 +16,7 @@ Serialization and deserialization is done on the client side only with two exclu
 
 If Java method alias has `Object` parameter(s), values are deserialized during invocation of this method on the server side.
 
-If a linked table has a column with `Types.JAVA_OBJECT JDBC` data type and its database is not an another H2, Java objects need to be serialized and deserialized during interaction between H2 and database that owns the table on the server side of H2.
+If a [linked table](https://www.h2database.com/html/advanced.html#linked_tables) has a column with `Types.JAVA_OBJECT JDBC` data type and its database is not an another H2, Java objects need to be serialized and deserialized during interaction between H2 and database that owns the table on the server side of H2.
 
 This data type needs special attention in secure environments.
 

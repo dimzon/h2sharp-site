@@ -10,7 +10,7 @@ SET MODE { REGULAR | STRICT | LEGACY | DB2 | DERBY | HSQLDB | MSSQLSERVER | MYSQ
 
 🟢 includes non-standard H2 syntax
 
-Changes to another database compatibility mode. For details, see Compatibility Modes.
+Changes to another database compatibility mode. For details, see [Compatibility Modes](https://www.h2database.com/html/features.html#compatibility_modes).
 
 This setting is not persistent. Admin rights are required to execute this command, as it affects all connections. This command commits an open transaction in this connection. This setting can be appended to the database URL: `jdbc:h2:./test;MODE=MYSQL`
 

@@ -10,7 +10,7 @@
 
 Right side of between predicate.
 
-Checks whether the value is within the range inclusive. `V BETWEEN [ ASYMMETRIC ] A AND B` is equivalent to `A = V AND V >= B`.
+Checks whether the value is within the range inclusive. `V BETWEEN [ ASYMMETRIC ] A AND B` is equivalent to `A <= V AND V <= B`. `V BETWEEN SYMMETRIC A AND B` is equivalent to `A <= V AND V <= B OR A >= V AND V >= B`.
 
 ## Example
 

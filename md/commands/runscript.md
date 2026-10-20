@@ -14,7 +14,7 @@ RUNSCRIPT FROM [`fileNameString`](../grammar/string.md) [`scriptCompressionEncry
 
 Runs a SQL script from a file. The script is a text file containing SQL statements; each statement must end with ';'. This command can be used to restore a database from a backup. The password must be in single quotes; it is case sensitive and can contain spaces.
 
-Instead of a file name, a URL may be used. To read a stream from the classpath, use the prefix 'classpath:'. See the Pluggable File System section.
+Instead of a file name, a URL may be used. To read a stream from the classpath, use the prefix 'classpath:'. See the [Pluggable File System](https://www.h2database.com/html/advanced.html#file_system) section.
 
 The compression algorithm must match the one used when creating the script. Instead of a file, a URL may be used.
 

@@ -9,7 +9,7 @@
 [ ( [`lengthLong`](../grammar/long.md) [K|M|G|T|P]) ]
 ```
 
-`BINARY LARGE OBJECT` is intended for very large binary values such as files or images. Unlike when using [BINARY VARYING](binary_varying_type.md), large objects are not kept fully in-memory; instead, they are streamed. Use `PreparedStatement.setBinaryStream` to store values. See also [CHARACTER LARGE OBJECT](character_large_object_type.md) and Large Objects section.
+`BINARY LARGE OBJECT` is intended for very large binary values such as files or images. Unlike when using [BINARY VARYING](binary_varying_type.md), large objects are not kept fully in-memory; instead, they are streamed. Use `PreparedStatement.setBinaryStream` to store values. See also [CHARACTER LARGE OBJECT](character_large_object_type.md) and [Large Objects](https://www.h2database.com/html/advanced.html#large_objects) section.
 
 Mapped to `java.sql.Blob` (`java.io.InputStream` is also supported).
 

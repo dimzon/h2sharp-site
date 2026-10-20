@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>cheatSheet — H2Sharp SQL mirror</title><link rel="icon" type="image/svg+xml" href="../../assets/favicon.svg"><link rel="stylesheet" href="../../assets/site.css"><link rel="stylesheet" href="../../assets/h2ref.css"></head><body>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Cheat Sheet — H2Sharp SQL mirror</title><link rel="icon" type="image/svg+xml" href="../../assets/favicon.svg"><link rel="stylesheet" href="../../assets/site.css"><link rel="stylesheet" href="../../assets/h2ref.css"></head><body>
 <header class="site-header"><div class="wrap"><a class="brand" href="../../" style="text-decoration:none"><img src="../../assets/logo.svg" alt="">H2Sharp <small>in progress</small></a><nav class="main"><a href="../../">Home</a><a href="../" class="active">SQL</a><a href="../../dotnet/">.NET API</a><a href="../../status/">Status</a></nav></div></header>
 <main class="wrap wide"><section class="block"><div class="version-banner">H2 <code>2.5.252 (2026-09-23)</code> mirror + H2Sharp pin <code>27c5170</code> · Original: <a href="https://www.h2database.com/html/cheatSheet.html">h2database.com ↗</a> · © H2 Group, MPL-2.0 / EPL-1.0 · Snapshot frozen: 20261013-h2-2.5.252</div><article class="doc h2doc"><div style="width:780px; margin:0 auto;">
 
@@ -9,7 +9,7 @@
 <ul><li><a href="https://h2database.com">H2</a> is
     <a href="https://github.com/h2database/h2database">open source</a>,
     <a href="https://www.h2database.com/html/license.html">free to use and distribute</a>.
-</li><li><a href="https://h2database.com/html/download.html">Download</a>:
+</li><li><a href="https://www.h2database.com/html/https://h2database.com/html/download.html">Download</a>:
     <a href="https://repo.maven.apache.org/maven2/com/h2database/h2/2.5.252/h2-2.5.252.jar" class="link">jar</a>,
     <a href="https://github.com/h2database/h2database/releases/download/version-2.5.252/h2-setup-2026-09-23.exe" class="link">installer (Windows)</a>,
     <a href="https://github.com/h2database/h2database/releases/download/version-2.5.252/h2-2026-09-23.zip" class="link">zip</a>.
@@ -28,8 +28,8 @@ Reference:
 <a href="functions.html" class="link">functions</a>,
 <a href="datatypes.html" class="link">data types</a>,
 <a href="https://www.h2database.com/html/tutorial.html#command_line_tools" class="link">tools</a>,
-<a href="../javadoc/index.html" class="link">API</a>
-<br />
+<a href="https://www.h2database.com/html/../javadoc/index.html" class="link">API</a>
+<br>
 <a href="https://www.h2database.com/html/features.html">Features</a>:
 <a href="https://www.h2database.com/html/tutorial.html#fulltext" class="link">fulltext search</a>,
 <a href="https://www.h2database.com/html/features.html#file_encryption" class="link">encryption</a>,
@@ -43,28 +43,28 @@ Reference:
 
 <h2><a href="https://www.h2database.com/html/features.html#database_url">Database URLs</a></h2>
 <p>
-<b><a href="https://www.h2database.com/html/features.html#connection_modes">Embedded</a></b><br />
-<code class="notranslate">jdbc:h2:~/test</code> 'test' in the user home directory<br />
-<code class="notranslate">jdbc:h2:/data/test</code> 'test' in the directory /data<br />
-<code class="notranslate">jdbc:h2:./test</code> in the current(!) working directory<br />
+<b><a href="https://www.h2database.com/html/features.html#connection_modes">Embedded</a></b><br>
+<code class="notranslate">jdbc:h2:~/test</code> 'test' in the user home directory<br>
+<code class="notranslate">jdbc:h2:/data/test</code> 'test' in the directory /data<br>
+<code class="notranslate">jdbc:h2:./test</code> in the current(!) working directory<br>
 </p><p>
-<b><a href="https://www.h2database.com/html/features.html#in_memory_databases">In-Memory</a></b><br />
+<b><a href="https://www.h2database.com/html/features.html#in_memory_databases">In-Memory</a></b><br>
 <code class="notranslate">jdbc:h2:mem:test</code> multiple connections in one process,
-database is removed when all connections are closed<br />
+database is removed when all connections are closed<br>
 <code class="notranslate">jdbc:h2:mem:test;DB_CLOSE_DELAY=-1</code> multiple connections in one process,
 database in not removed when all connections are closed
-(<a href="https://www.h2database.com/html/features.html#in_memory_databases">may create a memory leak</a>)<br />
-<code class="notranslate">jdbc:h2:mem:</code> unnamed private; one connection<br />
+(<a href="https://www.h2database.com/html/features.html#in_memory_databases">may create a memory leak</a>)<br>
+<code class="notranslate">jdbc:h2:mem:</code> unnamed private; one connection<br>
 </p><p>
-<b><a href="https://www.h2database.com/html/tutorial.html#using_server">Server Mode</a></b><br />
-<code class="notranslate">jdbc:h2:tcp://localhost/~/test</code> user home dir<br />
-<code class="notranslate">jdbc:h2:tcp://localhost//data/test</code> or <code class="notranslate">jdbc:h2:tcp://localhost/D:/data/test</code> absolute dir<br />
+<b><a href="https://www.h2database.com/html/tutorial.html#using_server">Server Mode</a></b><br>
+<code class="notranslate">jdbc:h2:tcp://localhost/~/test</code> user home dir<br>
+<code class="notranslate">jdbc:h2:tcp://localhost//data/test</code> or <code class="notranslate">jdbc:h2:tcp://localhost/D:/data/test</code> absolute dir<br>
 <a href="https://www.h2database.com/html/tutorial.html#using_server">Server start</a>:<code class="notranslate">java -cp *.jar org.h2.tools.Server</code>
 </p><p>
-<b><a href="https://www.h2database.com/html/features.html#database_url">Settings</a></b><br />
+<b><a href="https://www.h2database.com/html/features.html#database_url">Settings</a></b><br>
 <code class="notranslate">jdbc:h2:..;MODE=MySQL;DATABASE_TO_LOWER=TRUE</code>
-<a href="https://www.h2database.com/html/features.html#compatibility" >compatibility (or HSQLDB,...)</a><br />
-<code class="notranslate">jdbc:h2:..;TRACE_LEVEL_FILE=3</code> <a href="https://www.h2database.com/html/features.html#trace_options">log to *.trace.db</a><br />
+<a href="https://www.h2database.com/html/features.html#compatibility">compatibility (or HSQLDB,...)</a><br>
+<code class="notranslate">jdbc:h2:..;TRACE_LEVEL_FILE=3</code> <a href="https://www.h2database.com/html/features.html#trace_options">log to *.trace.db</a><br>
 </p>
 
 </div>
@@ -107,8 +107,8 @@ hibernate.cfg.xml (or use the HSQLDialect):
 
 <h2><a href="https://www.h2database.com/html/tutorial.html#using_toplink">TopLink and Glassfish</a></h2>
 <p>
-Datasource class: <code class="notranslate">org.h2.jdbcx.JdbcDataSource</code><br />
-<code class="notranslate">oracle.toplink.essentials.platform.</code><br />
+Datasource class: <code class="notranslate">org.h2.jdbcx.JdbcDataSource</code><br>
+<code class="notranslate">oracle.toplink.essentials.platform.</code><br>
 <code class="notranslate">database.H2Platform</code>
 </p>
 
