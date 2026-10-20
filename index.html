@@ -40,8 +40,8 @@
       <div class="strip">
         <span class="chip">H2 <b>2.5.252</b> + pin <b>27c5170</b></span>
         <span class="chip"><b>ADO.NET</b> spec <b>293/293</b> ✓</span>
-        <span class="chip"><b>947</b> SQL conformance tests</span>
-        <span class="chip"><b>EF Core</b> provider · 1052/1227</span>
+        <span class="chip"><b>947</b> SQL conformance tests · <b>251</b> pass</span>
+        <span class="chip"><b>EF Core</b> 1034 ✓ · <b>linq2db</b> provider</span>
         <span class="chip"><b>in-memory</b> engine</span>
         <span class="chip"><b>MVStore</b> file-compat ✓</span>
       </div>
@@ -110,15 +110,15 @@ dotnet add package H2Sharp --prerelease</code></pre></div>
       <div class="card"><h3>System.Data <span class="badge ok">available</span></h3><p>H2Connection, H2Command, H2Parameter, H2DataReader, H2Transaction, H2DataAdapter, H2ProviderFactory. Transactions work.</p><a class="go" href="dotnet/system-data.html">Reference →</a></div>
       <div class="card"><h3>Dapper <span class="badge ok">works today</span></h3><p>End-to-end over <code>IDbConnection</code>: open, create, insert, update, select, delete, transactions.</p><a class="go" href="dotnet/dapper.html">Examples →</a></div>
       <div class="card"><h3>Native API <span class="badge plan">planned</span></h3><p>Direct engine access. The engine executes real queries now; a public surface is not promised yet.</p><a class="go" href="dotnet/native.html">Stub →</a></div>
-      <div class="card"><h3>linq2db <span class="badge plan">planned</span></h3><p>LINQ provider on top of the ADO.NET provider.</p><a class="go" href="dotnet/linq2db.html">Stub →</a></div>
-      <div class="card"><h3>EF Core <span class="badge ok">in progress</span></h3><p>Its own repository: a fork of EFCore.PG with H2's surface. 1052 of 1227 inherited EF Core tests pass.</p><a class="go" href="dotnet/efcore.html">Details →</a></div>
+      <div class="card"><h3>EF Core <span class="badge ok">in progress</span></h3><p>Its own repository: a fork of EFCore.PG with H2's surface. 1034 inherited EF Core tests pass, none red.</p><a class="go" href="dotnet/efcore.html">Details →</a></div>
+      <div class="card"><h3>linq2db <span class="badge ok">in progress</span></h3><p>Its own repository, written from scratch against linq2db's public API. Query, insert, filter and order work.</p><a class="go" href="dotnet/linq2db.html">Details →</a></div>
       <div class="card"><h3>Port status</h3><p>Phases 0–10: what is done / in progress / todo — from the code.</p><a class="go" href="status/">Open →</a></div>
     </div>
   </section>
 
   <section class="block">
     <h2>Where we are</h2>
-    <p class="sub">Read from the repositories themselves, since <code>docs/ROADMAP.md</code> still lags the code. Honestly: the engine executes real queries, the built-in function layer is ported, the ADO.NET provider is 293/293 on its conformance suite — and the EF Core provider, in its own repository, passes 1052 of 1227 inherited EF Core tests. Constraints, <code>INFORMATION_SCHEMA</code> and the rest of the grammar are the open work.</p>
+    <p class="sub">Read from the repositories themselves, since <code>docs/ROADMAP.md</code> still lags the code. Honestly: the engine executes real queries, the built-in function layer is ported, the catalogue is ported, the ADO.NET provider is 293/293 on its conformance suite — and two provider projects are already running alongside it. Constraints, <code>JOIN</code> and the rest of the grammar are the open work.</p>
     <div class="timeline">
       <div class="phase done"><b>0–2 · Bootstrap, Foundation</b><span>done — CI, oracle, MVStore file-compat</span></div>
       <div class="phase done"><b>3 · Values, schema</b><span>done for what is portable</span></div>
@@ -126,7 +126,8 @@ dotnet add package H2Sharp --prerelease</code></pre></div>
       <div class="phase now"><b>5 · Commands/SQL</b><span>partial — SELECT, UNION, DML, DDL, PK constraints</span></div>
       <div class="phase now"><b>6 · Engine</b><span>partial</span></div>
       <div class="phase done"><b>8 · ADO.NET</b><span>done — 293/293 spec, transactions</span></div>
-      <div class="phase now"><b>9 · EF Core</b><span>in progress — 1052/1227 EF Core tests</span></div>
+      <div class="phase now"><b>9 · EF Core</b><span>in progress — 1034 EF Core tests green</span></div>
+      <div class="phase now"><b>linq2db</b><span>in progress — own repository</span></div>
       <div class="phase"><b>7, 10</b><span>todo — constraints, conformance polish</span></div>
     </div>
   </section>

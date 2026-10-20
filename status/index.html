@@ -39,7 +39,7 @@
 <div class="phase now"><b>6 · Engine</b><span>partial</span></div>
 <div class="phase"><b>7 · Constraints, rights</b><span>todo</span></div>
 <div class="phase done"><b>8 · ADO.NET provider</b><span>done</span></div>
-<div class="phase"><b>9 · EF Core</b><span>todo</span></div>
+<div class="phase now"><b>9 · EF Core</b><span>in progress — own repository</span></div>
 <div class="phase"><b>10 · Conformance, polish</b><span>todo</span></div>
 </div>
 
@@ -55,31 +55,42 @@
 </table>
 
 <h3 id="conformance">SQL conformance suite</h3>
-<p class="sub">The repo now carries <a href="https://github.com/dimzon/h2sharp/tree/main/tests/H2SharpSql.Specs"><code>tests/H2SharpSql.Specs</code></a> — <b>947 tests</b>, one per documented SQL construct, each anchored to a <i>line number</i> in the frozen snapshot the repo keeps in <code>docs/</code>. It is deliberately <b>not</b> part of <code>H2Sharp.sln</code>: while the port is young it shows hundreds of failures, and the daily ritual <code>dotnet test H2Sharp.sln</code> should not depend on it.</p>
+<p class="sub">The repo carries <a href="https://github.com/dimzon/h2sharp/tree/main/tests/H2SharpSql.Specs"><code>tests/H2SharpSql.Specs</code></a> — <b>947 tests</b>, one per documented SQL construct, each anchored to a <i>line number</i> in the frozen snapshot the repo keeps in <code>docs/</code>. It is deliberately <b>not</b> part of <code>H2Sharp.sln</code>: while the port is young it shows hundreds of failures, and the daily ritual <code>dotnet test H2Sharp.sln</code> should not depend on it.</p>
 <table class="ref">
-<tr><th>Area</th><th>Tests</th><th>Passing at first run (2026-10-19)</th></tr>
-<tr><td><code>Commands/</code></td><td>254</td><td>11</td></tr>
-<tr><td><code>Functions/</code></td><td>325</td><td>33</td></tr>
-<tr><td><code>Grammar/</code></td><td>263</td><td>46</td></tr>
-<tr><td><code>Datatypes/</code></td><td>66</td><td>10</td></tr>
-<tr><td><code>SystemTables/</code></td><td>37</td><td>0</td></tr>
-<tr><td><code>Dml/</code></td><td>2</td><td>2</td></tr>
-<tr><td><b>Total</b></td><td><b>947</b></td><td><b>102</b></td></tr>
+<tr><th>Area</th><th>Passed</th><th>Total</th><th>Note</th></tr>
+<tr><td><code>SystemTables/</code></td><td>17</td><td>37</td><td>was 0 — the catalogue is ported now</td></tr>
+<tr><td><code>Commands/</code></td><td>17</td><td>254</td><td>was 11</td></tr>
+<tr><td><code>Grammar/</code></td><td>61</td><td>263</td><td>was 49</td></tr>
+<tr><td><code>Datatypes/</code></td><td>38</td><td>66</td><td>was 37</td></tr>
+<tr><td><b>Total</b></td><td><b>251</b></td><td><b>947</b></td><td>the first run, on 2026-10-19, was 102</td></tr>
 </table>
-<p class="sub">The biggest gaps by failure count: <code>EXTRACT</code> in the parser (66), <code>FILTER</code>/<code>OVER</code> (35), <code>INFORMATION_SCHEMA</code> as a table (25), <code>CREATE DOMAIN</code> (15), <code>ALTER TABLE</code> beyond <code>ADD</code>/<code>DROP CONSTRAINT</code> (12), <code>YEAR</code> (12), derived tables (12), <code>CREATE ROLE</code> (11), <code>HOUR</code> (10), table constraints other than <code>PRIMARY KEY</code> (9), <code>CREATE SEQUENCE</code> (8).</p>
+<p class="sub">The biggest gaps by failure count were: <code>EXTRACT</code> in the parser (66), <code>FILTER</code>/<code>OVER</code> (35), <code>INFORMATION_SCHEMA</code> as a table (25), <code>CREATE DOMAIN</code> (15), <code>ALTER TABLE</code> beyond <code>ADD</code>/<code>DROP CONSTRAINT</code> (12), <code>YEAR</code> (12), derived tables (12), <code>CREATE ROLE</code> (11), <code>HOUR</code> (10), table constraints other than <code>PRIMARY KEY</code> (9), <code>CREATE SEQUENCE</code> (8).</p>
+
+<h3 id="catalogue">The catalogue is ported</h3>
+<p class="sub"><code>INFORMATION_SCHEMA</code> came across with the reference's own column lists, read verbatim from its <code>getColumns()</code>, with an index of its own whose cursor computes the rows at read time — so the view is always current. The schema is created with the database, as in the reference.</p>
+<table class="ref">
+<tr><th>Filled</th><th>Empty for now</th></tr>
+<tr><td><code>CATALOG_NAME</code>, <code>SCHEMATA</code>, <code>TABLES</code>, <code>VIEWS</code>, <code>COLUMNS</code>, <code>TABLE_CONSTRAINTS</code>, <code>KEY_COLUMN_USAGE</code>, <code>CONSTRAINT_COLUMN_USAGE</code>, <code>INDEXES</code>, <code>INDEX_COLUMNS</code>, <code>COLLATIONS</code> (only <code>OFF</code> — no ICU in the port), <code>SETTINGS</code> (only the version)</td><td><code>USERS</code>, <code>ROLES</code>, <code>RIGHTS</code>, <code>TABLE_PRIVILEGES</code>, <code>COLUMN_PRIVILEGES</code>, <code>PARAMETERS</code>, <code>ROUTINES</code>, <code>CONSTANTS</code>, <code>DOMAINS</code>, <code>TRIGGERS</code>, <code>SYNONYMS</code>, <code>SEQUENCES</code>, <code>SESSIONS</code>, <code>LOCKS</code> and others — the views are there with the reference's columns, and fill as their objects arrive</td></tr>
+</table>
+<p class="sub">The parser learned a qualified name in <code>FROM</code> (<code>INFORMATION_SCHEMA.TABLES</code>, an unknown schema giving 90079 as in the reference) and <code>SYSTEM_RANGE(min, max[, step])</code> with its <code>GENERATE_SERIES</code> alias. A selection list may now be a comparison — <code>SELECT COUNT(*) &gt; 0 FROM …</code> reads.</p>
+<p class="sub">Verified against the reference: <code>InformationSchemaOracleTests.TheCatalogueAnswersTheSameAsTheReference</code> asks twelve questions (schemata, all tables, all columns — every one of the 33 views and all their columns — constraints, key usage, constraint usage, indexes, index columns, views, collations, <code>SYSTEM_RANGE</code> both ways) and compares every row and every cell.</p>
 
 <div class="version-banner"><b>Why the numbers differ from the site's mirror:</b> the frozen docs are H2 <code>2.5.252</code>, while the reference checkout the port is written against is <code>2.5.259-SNAPSHOT</code> (<code>reference/H2_COMMIT.txt</code>). On a disagreement <b>the reference wins</b>, not the snapshot. This site's mirror is the same 8 files the repo commits, verified byte-for-byte — <code>python tools/verify-snapshot.py</code>.</div>
 
-<h3 id="efcore">The EF Core provider</h3>
-<p class="sub">It lives in its own repository, <a href="https://github.com/dimzon/h2sharp-efcore">dimzon/h2sharp-efcore</a> — a fork of <b>EFCore.PG</b> with PostgreSQL's surface replaced by H2's, keeping EF Core's own specification suite as the measure.</p>
+<h3 id="efcore">The providers</h3>
+<p class="sub">Two provider projects run alongside the engine, each in its own repository, each with its own history: <a href="https://github.com/dimzon/h2sharp-efcore">dimzon/h2sharp-efcore</a> — a fork of <b>EFCore.PG</b> with PostgreSQL's surface replaced by H2's, keeping EF Core's own specification suite as the measure; and <a href="https://github.com/dimzon/h2sharp-linq2db">dimzon/h2sharp-linq2db</a> — written from scratch against linq2db's public API, not a fork.</p>
 <table class="ref">
-<tr><th>Run</th><th>Passed</th><th>Failed</th><th>Total</th></tr>
-<tr><td><code>Category!=BlockedByPort</code> — the provider is correct as far as the port allows</td><td>1032</td><td><b>0</b></td><td>1032</td></tr>
-<tr><td><code>Category=BlockedByPort</code> — the port defects the provider has signed up for</td><td>20</td><td>175</td><td>197</td></tr>
-<tr><td><b>Total</b></td><td><b>1052</b></td><td><b>175</b></td><td><b>1227</b></td></tr>
+<tr><td>Run</td><th>Passed</th><th>Failed</th><th>Total</th></tr>
+<tr><td><code>Category!=BlockedByPort</code> — the provider is correct as far as the port allows</td><td>1034</td><td><b>0</b></td><td>1034</td></tr>
+<tr><td><code>Category=BlockedByPort</code> — the port defects the provider has signed up for</td><td>19</td><td>185</td><td>206</td></tr>
+<tr><td><b>Total</b></td><td><b>1053</b></td><td><b>185</b></td><td><b>1240</b></td></tr>
 </table>
 <p class="sub">Both runs are needed, and the split is the point: a test failing because a function was not ported stays in the suite, tagged <code>BlockedByPort</code>, so the port's remaining work is <i>visible</i> rather than quietly removed. The provider is checked against the reference engine on the JVM, not against the port — a test against the port would only prove the port agrees with itself.</p>
 <p class="sub">The engine gaps it is waiting on are numbered in its <code>docs/DIVERGENCES.md</code>: quoted column references, <code>AS</code> aliases (now landed), <code>GENERATED … AS IDENTITY</code>, <code>FOREIGN KEY</code> in <code>CREATE TABLE</code>, <code>INTERVAL</code> types, <code>DB_CLOSE_DELAY</code>, the <code>INFORMATION_SCHEMA</code> catalogue, and <code>CREATE SEQUENCE</code>.</p>
+
+<h3 id="linq2db">The linq2db provider</h3>
+<p class="sub">Written from scratch against linq2db's public API and the engine's public API — not a fork of another provider. It generates H2's SQL: always-quoted identifiers, H2's own types, <code>LIMIT</code>/<code>OFFSET</code>, <code>||</code> for concatenation, named <code>@name</code> parameters, and a table alias without the <code>AS</code> — the form the engine reads. Query, insert, filter with a parameter and order work against the engine; the schema provider reads the catalogue the way H2 2.5 keeps it.</p>
+<p class="sub">Its <code>docs/DIVERGENCES.md</code> lists the port defects it waits on, and every one of them is the engine's work, not a limit of H2: the catalogue's name differs from the reference's, <code>DB_CLOSE_DELAY</code> and file databases, the engine's catalogue not being reachable from the ADO layer (<code>H2Connection.Session</code> is <code>internal</code>), <code>JOIN</code>, <code>AS</code> before a table alias, identity DDL, <code>CREATE SEQUENCE</code>, and <code>IN</code> with a subquery.</p>
 
 <h3 id="not-yet">Not yet — as port defects, not as limits of H2</h3>
 <p class="sub">The project's own wording: a feature missing from the port is <b>unfinished work</b>, not a property of the database. <code>JOIN</code>, subqueries, window functions, <code>MERGE</code>, <code>INFORMATION_SCHEMA</code>, <code>CREATE SEQUENCE</code>, identity DDL and <code>AS</code> before a table alias all exist in H2 2.5 and will be in the port — the orientation is the frozen documentation and the reference jar, not the port's current state. Each gap below is a tracked defect with an owner, and the tests that fail on it stay in the suite, tagged <code>BlockedByPort</code>.</p>
@@ -89,18 +100,18 @@
 <li>The reference's statement scope, savepoint wrapping and rollback of a failed attempt — the comments in <code>Command.cs</code> say so outright; <code>ExecuteQuery</code> and batch execution still refuse</li>
 <li>Quoted column references (<code>SELECT "e"."Id"</code>) — the query layer's resolver is not ported</li>
 <li><b>File databases</b> and async <code>OpenAsync</code> — in-memory only today</li>
-<li>Constraints and rights, EF Core</li>
+<li>Constraints and rights</li>
 <li>Table constraints other than <code>PRIMARY KEY</code>; <code>CREATE SEQUENCE</code>, <code>CREATE DOMAIN</code>, <code>CREATE ROLE</code></li>
-<li><code>INFORMATION_SCHEMA</code> as a queryable table — <strong>0 of 37</strong> system-table tests pass</li>
+<li><code>INFORMATION_SCHEMA</code> as a queryable table — the catalogue <b>is</b> ported now (17 of 37 system-table tests pass); the rest need DDL the port does not have yet</li>
 </ul>
 
 <h3 id="tests">Tests</h3>
 <table class="ref">
 <tr><th>Project</th><th>Count</th></tr>
-<tr><td><code>H2Sharp.Tests</code></td><td>982</td></tr>
-<tr><td><code>H2Sharp.Data.Tests</code></td><td>297</td></tr>
+<tr><td><code>H2Sharp.Tests</code></td><td>1115</td></tr>
+<tr><td><code>H2Sharp.Data.Tests</code></td><td>343, plus 19 red — the same <code>AS</code>-alias, CTE, <code>JOIN</code> and <code>MERGE</code> pins</td></tr>
 <tr><td><code>H2Sharp.MvStore.Tests</code></td><td>86</td></tr>
-<tr><td><code>H2Sharp.Engine.Tests</code></td><td>5 — red by design (the reference <code>TestIndex</code> port; the rest of the engine suite is not ported)</td></tr>
+<tr><td><code>H2Sharp.Engine.Tests</code></td><td>4 of 9 — red by design (the reference <code>TestIndex</code> port; the rest of the engine suite is not ported)</td></tr>
 </table>
 
 <div class="version-banner"><b><code>TODOException</code> is the honest measure.</b> The roadmap counts <b>236</b> sites across ~40 files, and it distinguishes a class that parses a statement and then refuses from one that works — that is why phases here say "partial" and not "done". The site does not restate a current count, because counting it yourself gives a different number (roughly 240 sites in ~50 files): the figure only means something at the commit it was measured at.</div>

@@ -1,4 +1,61 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>linq2db (planned) — H2Sharp</title><link rel="icon" type="image/svg+xml" href="../assets/favicon.svg"><link rel="stylesheet" href="../assets/site.css"></head><body>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>linq2db — H2Sharp</title><link rel="icon" type="image/svg+xml" href="../assets/favicon.svg"><link rel="stylesheet" href="../assets/site.css"></head><body>
 <header class="site-header"><div class="wrap"><a class="brand" href="../" style="text-decoration:none"><img src="../assets/logo.svg" alt="">H2Sharp <small>in progress</small></a><nav class="main"><a href="../">Home</a><a href="../sql/">SQL</a><a href="./" class="active">.NET API</a><a href="../status/">Status</a></nav></div></header>
-<main class="wrap"><section class="block"><h2>linq2db <span class="badge plan">planned</span></h2><p class="sub">LINQ provider over the H2Sharp ADO.NET provider. Type mappings, H2 dialect generation, tests against an in-memory database.</p><div class="version-banner">Gates: phase 8 (provider — <b>closed</b>, 293/293 with transactions) → H2→.NET type mappings → dialect smoke. No blocking gap left in the provider itself.</div></section></main>
-<footer><div class="wrap"><span>This section arrives once the API stabilizes.</span><span style="margin-left:auto"><a href="./">← .NET API</a></span></div></footer></body></html>
+<main class="wrap"><section class="block">
+<h2>linq2db <span class="badge ok">in progress</span></h2>
+<p class="sub">The linq2db provider lives in its own repository, <a href="https://github.com/dimzon/h2sharp-linq2db">dimzon/h2sharp-linq2db</a> — written <b>from scratch</b> against linq2db's public API and the engine's public API. Unlike the Entity Framework Core provider, this one is not a fork of another provider.</p>
+
+<div class="version-banner"><b>What it generates</b> is H2's SQL, checked against H2's frozen documentation and against the reference engine on the JVM.</div>
+
+<h3 id="using">Using it</h3>
+<pre class="mini"><code><span class="tok-k">using</span> LinqToDB;
+<span class="tok-k">using</span> LinqToDB.DataProvider.H2Sharp;
+
+<span class="tok-k">await using var</span> db = H2SharpTools.CreateDataConnection(<span class="tok-s">"jdbc:h2:mem:mydb"</span>);
+
+<span class="tok-k">var</span> rows = <span class="tok-k">await</span> db.GetTable&lt;Row&gt;()
+    .Where(r =&gt; r.Price &gt; 10m)
+    .OrderBy(r =&gt; r.Id)
+    .ToListAsync();</code></pre>
+<p class="sub">The connection string is the JDBC URL. The ADO.NET spelling works too — <code>Data Source=mem:mydb</code> names the same database and is translated; the settings a URL carries (<code>MODE=PostgreSQL</code> and the like) are the connection string's other keys.</p>
+
+<h3 id="generates">What it generates</h3>
+<table class="ref">
+<tr><th></th><th></th></tr>
+<tr><td>Identifiers</td><td>always quoted, the way H2 documents it: an unquoted identifier folds to upper case, a quoted one does not</td></tr>
+<tr><td>Types</td><td>H2's own: <code>varchar</code>, <code>char</code>, <code>numeric</code>, <code>varbinary</code>, <code>uuid</code>, <code>json</code>, <code>clob</code>, <code>blob</code>, <code>timestamp</code>, <code>time</code>, <code>boolean</code>, <code>smallint</code>, <code>integer</code>, <code>bigint</code>, <code>real</code>, <code>double</code></td></tr>
+<tr><td>Paging</td><td><code>LIMIT n</code> / <code>OFFSET n</code></td></tr>
+<tr><td>Concatenation</td><td><code>||</code>, which H2 has</td></tr>
+<tr><td>Parameters</td><td>named <code>@name</code>, which the engine rewrites into <code>?</code> before the statement is parsed</td></tr>
+<tr><td>Table alias</td><td>without the <code>AS</code>: <code>FROM "Rows" "r"</code> — the grammar allows both spellings (<code>[ [ AS ] newTableAlias ]</code>), and this is the one the engine reads</td></tr>
+</table>
+
+<h3 id="state">State</h3>
+<table class="ref">
+<tr><th></th><th></th></tr>
+<tr><td>Builds</td><td>yes, against the released <code>linq2db 6.5.0</code>; .NET 8 and .NET 10</td></tr>
+<tr><td>Public API</td><td><code>H2SharpTools.GetDataProvider</code>, <code>CreateDataConnection</code>, <code>H2SharpProvider</code>, <code>H2SharpVersion</code></td></tr>
+<tr><td>Schema provider</td><td>reads <code>INFORMATION_SCHEMA</code> the way H2 2.5 keeps it</td></tr>
+<tr><td>Member translation</td><td>only the common one — H2-specific date and math translation is not written yet</td></tr>
+<tr><td>Working against the engine</td><td>query, insert, filter with a parameter, order</td></tr>
+</table>
+
+<h3 id="gaps">Port gaps it is waiting on</h3>
+<p class="sub">Listed in the provider's own <code>docs/DIVERGENCES.md</code>, where each one says who has to fix it — here they are all <b>port defects</b>, not limits of H2:</p>
+<table class="ref">
+<tr><th>Gap</th><th>Symptom</th></tr>
+<tr><td><code>INFORMATION_SCHEMA</code> catalogue differs from the reference</td><td>the catalogue name is the database path from the URL (<code>mem:db</code>), where H2 2.5 uses the database name; the <code>collation</code> column is empty</td></tr>
+<tr><td><code>DB_CLOSE_DELAY</code> and file databases</td><td><code>Not ported yet: Engine.openSession: persistent databases need the file store</code> — a pooled connection takes the database with it</td></tr>
+<tr><td>The engine's catalogue from the ADO layer</td><td><code>H2Connection.Session</code> is <code>internal</code>, while <code>Schema.GetAllTablesAndViews</code> wants a <code>SessionLocal</code></td></tr>
+<tr><td><code>JOIN</code></td><td><code>FROM T3 a LEFT JOIN T3 b</code> — expected <code>statement</code></td></tr>
+<tr><td><code>AS</code> before a table alias</td><td><code>SELECT a.Id FROM T3 AS a</code> — expected <code>statement</code></td></tr>
+<tr><td>identity DDL</td><td><code>CREATE TABLE T1 (Id INT GENERATED BY DEFAULT AS IDENTITY …)</code> — expected <code>)</code></td></tr>
+<tr><td><code>CREATE SEQUENCE</code></td><td><code>CREATE SEQUENCE "foo" AS integer …</code> — expected <code>TABLE</code></td></tr>
+<tr><td><code>IN</code> with a subquery</td><td><code>Parser.parseQuerySelect: IN with a subquery is not ported</code></td></tr>
+</table>
+
+<h3 id="how">How the first bug was found</h3>
+<p class="sub">Worth telling, because it is the method the whole project follows: an <code>INSERT</code> wrote the <i>column names</i> instead of the values. The cause was not in the provider's own code but in linq2db's base <code>Convert</code>, which writes a parameter's name as it is — because the prefix is each provider's business: PostgreSQL and Oracle write <code>:</code>, H2 must write <code>@</code>. It was found with an <b>instrumented local copy</b> of linq2db's core, with the insert expression and the generated SQL printed under <code>LINQ2DB_DEBUG_SQL=1</code>. A published package cannot be instrumented, so the build moved to a local copy of the sources, with a property to point at it — building against the released package stays possible.</p>
+
+<p class="sub">Also in that repository: <code>docs/USAGE.md</code> is the guide (connecting, a data context, mapping, H2's functions, window functions, scaffolding, reading the catalogue, the SQL it generates, and what does not work yet), plus <code>AGENTS.md</code> for the rules of the work and <code>UPSTREAM.md</code> for its origin. License: MIT.</p>
+</section></main>
+<footer><div class="wrap"><span>H2Sharp · linq2db provider in its own repository</span><span style="margin-left:auto"><a href="./">← .NET API</a></span></div></footer></body></html>

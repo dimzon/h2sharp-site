@@ -37,14 +37,19 @@ TITLES = {
 def extract(raw: str) -> str:
     """Pull the content region out of a built H2 page.
 
-    Reference pages wrap their body in <div class="content"> ... <!-- } -->.
-    cheatSheet.html has neither — it is a plain <body> with inline styles — so
-    it falls back to the whole body, minus scripts and the search menu.
+    Reference pages wrap their body in <div class="content"> ... <!-- [close] { -->,
+    and the page then closes the outer layout table (</div></td></tr></table>) and
+    loads its scripts. Cutting at the "[close]" marker keeps those out: they would
+    otherwise arrive as stray close tags and unbalance the markup. The last
+    "<!-- } -->" is a fallback for pages laid out differently.
+    cheatSheet.html has neither marker - it is a plain <body> with inline styles.
     """
     start = raw.find('<div class="content">')
     if start >= 0:
         start = raw.find(">", start) + 1
-        end = raw.rfind("<!-- } -->")
+        end = raw.find("<!-- [close] { -->")
+        if end < 0:
+            end = raw.rfind("<!-- } -->")
         if end > start:
             return raw[start:end]
     body = raw.find("<body")

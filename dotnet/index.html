@@ -9,13 +9,13 @@
 </div></header>
 <main class="wrap"><section class="block">
 <h2>.NET API</h2>
-<p class="sub">The ADO.NET layer works today and is gated by a real conformance suite; the Entity Framework Core provider is a separate project, already in progress. No invented signatures — every section reflects what is in the repositories.</p>
+<p class="sub">The ADO.NET layer works today and is gated by a real conformance suite; the Entity Framework Core and linq2db providers are separate projects, already in progress. No invented signatures — every section reflects what is in the repositories.</p>
 <div class="grid">
 <div class="card"><h3>System.Data <span class="badge ok">available</span></h3><p>H2Connection, H2Command, H2Parameter, H2DataReader, H2Transaction, H2DataAdapter, H2ProviderFactory. 293/293 of the ADO.NET spec suite.</p><a class="go" href="system-data.html">Reference →</a></div>
 <div class="card"><h3>Dapper <span class="badge ok">works today</span></h3><p>End-to-end over <code>IDbConnection</code>: open, create, insert, update, select, delete, transactions.</p><a class="go" href="dapper.html">Examples →</a></div>
 <div class="card"><h3>Native API <span class="badge plan">planned</span></h3><p>Direct engine access: Parser, Session, Database. Gate: a stable public surface over the engine.</p><a class="go" href="native.html">Stub →</a></div>
-<div class="card"><h3>linq2db <span class="badge plan">planned</span></h3><p>LINQ provider over ADO.NET. Gate: type mappings H2→.NET + dialect smoke.</p><a class="go" href="linq2db.html">Stub →</a></div>
-<div class="card"><h3>EF Core <span class="badge ok">in progress</span></h3><p>Own repository: a fork of EFCore.PG with H2's surface. 1052 of 1227 inherited EF Core tests pass.</p><a class="go" href="efcore.html">Details →</a></div>
+<div class="card"><h3>linq2db <span class="badge ok">in progress</span></h3><p>Own repository, written from scratch against linq2db's public API. Query, insert, filter and order work against the engine.</p><a class="go" href="linq2db.html">Details →</a></div>
+<div class="card"><h3>EF Core <span class="badge ok">in progress</span></h3><p>Own repository: a fork of EFCore.PG with H2's surface. 1034 inherited EF Core tests pass, none red.</p><a class="go" href="efcore.html">Details →</a></div>
 </div></section></main>
 <footer><div class="wrap"><img src="../assets/logo-mono.svg" alt=""><span>H2Sharp · API in progress</span><span style="margin-left:auto"><a href="../">← Home</a></span></div></footer>
 </body></html>

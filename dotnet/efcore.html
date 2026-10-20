@@ -10,9 +10,9 @@
 <p class="sub">Run against the pinned reference engine (<code>h2-2.5.259-SNAPSHOT.jar</code>), not against the port — a test against the port would only prove the port agrees with itself. The suite is split by trait, and <b>both runs are needed</b>:</p>
 <table class="ref">
 <tr><th>Run</th><th>Passed</th><th>Failed</th><th>Total</th></tr>
-<tr><td><code>dotnet test --filter "Category!=BlockedByPort"</code> — the provider is correct as far as the port allows</td><td>1032</td><td><b>0</b></td><td>1032</td></tr>
-<tr><td><code>dotnet test --filter "Category=BlockedByPort"</code> — the port defects the provider has signed up for</td><td>20</td><td>175</td><td>197</td></tr>
-<tr><td><b>Total</b></td><td><b>1052</b></td><td><b>175</b></td><td><b>1227</b></td></tr>
+<tr><td><code>dotnet test --filter "Category!=BlockedByPort"</code> — the provider is correct as far as the port allows</td><td>1034</td><td><b>0</b></td><td>1034</td></tr>
+<tr><td><code>dotnet test --filter "Category=BlockedByPort"</code> — the port defects the provider has signed up for</td><td>19</td><td>185</td><td>206</td></tr>
+<tr><td><b>Total</b></td><td><b>1053</b></td><td><b>185</b></td><td><b>1240</b></td></tr>
 </table>
 <p class="sub">A test that fails because a function was not ported stays in the suite, tagged <code>BlockedByPort</code>: removing it would take away the only signal that the port has not yet caught up with H2.</p>
 
