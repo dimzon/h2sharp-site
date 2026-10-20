@@ -66,8 +66,8 @@ def strip(node: Node) -> None:
     are renamed rather than left to fire.
     """
     for child in list(node.children):
-        if child.tag in ("script", "style"):
-            node.children.remove(child)
+        if child.tag in ("script", "style", "#comment"):
+            node.remove_child(child)
             continue
         for attr in [a for a in child.attrs if a.startswith("on") and a != "onclick"]:
             child.attrs[f"data-{attr}"] = child.attrs.pop(attr)

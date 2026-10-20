@@ -123,7 +123,7 @@ def _render(node: Node, cur_page: str, out: list[str], flags: set[str] | None) -
         out.append(node.text or "")
         return
     tag = node.tag
-    if tag in ("script", "style"):
+    if tag in ("script", "style", "#comment"):
         return
     if tag == "br":
         out.append("\n")
@@ -193,6 +193,8 @@ def _bnf_render(node: Node, cur_page: str, out: list[str], flags: set[str]) -> N
     for child in node.children:
         if child.tag == "#text":
             out.append(child.text or "")
+        elif child.tag == "#comment":
+            continue
         elif child.tag == "a":
             name = child.text_content().strip()
             url = link_url(child.attrs.get("href", ""), cur_page)
@@ -269,6 +271,8 @@ def topic_blocks(nodes: list[Node], cur_page: str) -> list[tuple[str, str, set[s
     """Blocks of a topic as (kind, payload, flags)."""
     blocks: list[tuple[str, str, set[str]]] = []
     for node in nodes:
+        if node.tag == "#comment":
+            continue
         if is_railroad(node):
             continue
         if is_bnf(node):
