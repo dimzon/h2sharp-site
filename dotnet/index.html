@@ -12,10 +12,21 @@
 <p class="sub">The ADO.NET layer works today and is gated by a real conformance suite; the Entity Framework Core and linq2db providers are separate projects, already in progress. No invented signatures — every section reflects what is in the repositories.</p>
 <div class="grid">
 <div class="card"><h3>System.Data <span class="badge ok">available</span></h3><p>H2Connection, H2Command, H2Parameter, H2DataReader, H2Transaction, H2DataAdapter, H2ProviderFactory. 293/293 of the ADO.NET spec suite.</p><a class="go" href="system-data.html">Reference →</a></div>
-<div class="card"><h3>Dapper <span class="badge ok">works today</span></h3><p>End-to-end over <code>IDbConnection</code>: open, create, insert, update, select, delete, transactions.</p><a class="go" href="dapper.html">Examples →</a></div>
-<div class="card"><h3>Native API <span class="badge plan">planned</span></h3><p>Direct engine access: Parser, Session, Database. Gate: a stable public surface over the engine.</p><a class="go" href="native.html">Stub →</a></div>
-<div class="card"><h3>linq2db <span class="badge ok">in progress</span></h3><p>Own repository, written from scratch against linq2db's public API. Query, insert, filter and order work against the engine.</p><a class="go" href="linq2db.html">Details →</a></div>
-<div class="card"><h3>EF Core <span class="badge ok">in progress</span></h3><p>Own repository: a fork of EFCore.PG with H2's surface. 1034 inherited EF Core tests pass, none red.</p><a class="go" href="efcore.html">Details →</a></div>
-</div></section></main>
+<div class="card"><h3>EF Core <span class="badge ok">in progress</span></h3><p>Own repository: a fork of EFCore.PG with H2's surface. 1221 inherited EF Core tests pass, none red.</p><a class="go" href="efcore.html">Details →</a></div>
+<div class="card"><h3>linq2db <span class="badge ok">in progress</span></h3><p>Own repository, written from scratch against linq2db's public API. 68 provider tests and 108 forum-model tests green.</p><a class="go" href="linq2db.html">Details →</a></div>
+<div class="card"><h3>Native API <span class="badge plan">planned</span></h3><p>Direct engine access. The engine executes real queries now; a public surface is not promised yet.</p><a class="go" href="native.html">Stub →</a></div>
+</div>
+
+<h3 id="versioning">Three projects, three version lines</h3>
+<p class="sub">A provider is chosen by the thing it is built into, so its number is that thing's line:</p>
+<table class="ref">
+<tr><th>Project</th><th>Line</th><th>What the number means</th></tr>
+<tr><td><code>H2Sharp</code> — the engine</td><td>its own, <code>0.x</code> while the port is unfinished</td><td>how far the port is written</td></tr>
+<tr><td><code>H2Sharp.EntityFrameworkCore</code></td><td>the EF Core line, <code>M.m</code></td><td>which EF Core version the provider works with</td></tr>
+<tr><td><code>H2Sharp.Linq2Db</code></td><td>the linq2db line, <code>M.m</code></td><td>which linq2db version the provider works with</td></tr>
+</table>
+<p class="sub">A program on EF Core 9.0 takes the 9.0-line provider and no other: another major EF Core is a different world of configuration and APIs. The engine has nothing it is built into, so it has its own line — the H2 version it reproduces (2.5) is written in the package description and the README, but <b>not</b> in the number, because the port is not H2 2.5 and a number saying "2.5" would claim exactly that.</p>
+<p class="sub">The state of the work rides in the suffix: <code>9.0.5-alpha.1</code> is the first build after the fork, <code>9.0.6-alpha.1</code> is our next fix on the same EF Core line, and <code>0.1.0-alpha.1</code> is the engine in progress. The patch counts <i>our</i> changes, not the upstream's — a provider tracking EF Core 9.0.5 is not EFCore.PG 9.0.5, and the number must not say it is.</p>
+</section></main>
 <footer><div class="wrap"><img src="../assets/logo-mono.svg" alt=""><span>H2Sharp · API in progress</span><span style="margin-left:auto"><a href="../">← Home</a></span></div></footer>
 </body></html>

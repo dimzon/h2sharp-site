@@ -4,7 +4,7 @@
 <h2>linq2db <span class="badge ok">in progress</span></h2>
 <p class="sub">The linq2db provider lives in its own repository, <a href="https://github.com/dimzon/h2sharp-linq2db">dimzon/h2sharp-linq2db</a> — written <b>from scratch</b> against linq2db's public API and the engine's public API. Unlike the Entity Framework Core provider, this one is not a fork of another provider.</p>
 
-<div class="version-banner"><b>What it generates</b> is H2's SQL, checked against H2's frozen documentation and against the reference engine on the JVM.</div>
+<div class="version-banner"><b>What it generates</b> is H2's SQL, checked against H2's frozen documentation and against the reference engine on the JVM. The capabilities it declares are H2 2.5's, not the engine's current ones: a provider that declared the engine's abilities would be describing a database that does not exist.</div>
 
 <h3 id="using">Using it</h3>
 <pre class="mini"><code><span class="tok-k">using</span> LinqToDB;
@@ -16,46 +16,81 @@
     .Where(r =&gt; r.Price &gt; 10m)
     .OrderBy(r =&gt; r.Id)
     .ToListAsync();</code></pre>
-<p class="sub">The connection string is the JDBC URL. The ADO.NET spelling works too — <code>Data Source=mem:mydb</code> names the same database and is translated; the settings a URL carries (<code>MODE=PostgreSQL</code> and the like) are the connection string's other keys.</p>
+<p class="sub">The public API is <code>H2SharpTools.GetDataProvider</code>, <code>CreateDataConnection</code>, <code>H2SharpProvider</code> and <code>H2SharpVersion</code>. It is built for <b>.NET 8</b> and <b>.NET 10</b>, against the released <code>linq2db 6.5.0</code>.</p>
 
-<h3 id="generates">What it generates</h3>
+<h3 id="connection">The connection string</h3>
+<p class="sub">The engine's ADO layer takes a JDBC URL; the .NET world spells the same thing <code>Data Source=mem:mydb</code>. Both are accepted, and the translation is one call if you want to see it:</p>
 <table class="ref">
-<tr><th></th><th></th></tr>
-<tr><td>Identifiers</td><td>always quoted, the way H2 documents it: an unquoted identifier folds to upper case, a quoted one does not</td></tr>
-<tr><td>Types</td><td>H2's own: <code>varchar</code>, <code>char</code>, <code>numeric</code>, <code>varbinary</code>, <code>uuid</code>, <code>json</code>, <code>clob</code>, <code>blob</code>, <code>timestamp</code>, <code>time</code>, <code>boolean</code>, <code>smallint</code>, <code>integer</code>, <code>bigint</code>, <code>real</code>, <code>double</code></td></tr>
-<tr><td>Paging</td><td><code>LIMIT n</code> / <code>OFFSET n</code></td></tr>
-<tr><td>Concatenation</td><td><code>||</code>, which H2 has</td></tr>
-<tr><td>Parameters</td><td>named <code>@name</code>, which the engine rewrites into <code>?</code> before the statement is parsed</td></tr>
-<tr><td>Table alias</td><td>without the <code>AS</code>: <code>FROM "Rows" "r"</code> — the grammar allows both spellings (<code>[ [ AS ] newTableAlias ]</code>), and this is the one the engine reads</td></tr>
+<tr><th>What is written</th><th>What the engine opens</th></tr>
+<tr><td><code>jdbc:h2:mem:mydb</code></td><td><code>jdbc:h2:mem:mydb</code></td></tr>
+<tr><td><code>Data Source=mem:mydb</code></td><td><code>jdbc:h2:mem:mydb</code></td></tr>
+<tr><td><code>Data Source=mem:mydb;MODE=PostgreSQL</code></td><td><code>jdbc:h2:mem:mydb;mode=PostgreSQL</code></td></tr>
 </table>
+<pre class="mini"><code><span class="tok-k">var</span> url = H2SharpConnectionString.ToUrl(<span class="tok-s">"Data Source=mem:mydb;MODE=PostgreSQL"</span>);
+// jdbc:h2:mem:mydb;mode=PostgreSQL</code></pre>
 
 <h3 id="state">State</h3>
 <table class="ref">
 <tr><th></th><th></th></tr>
 <tr><td>Builds</td><td>yes, against the released <code>linq2db 6.5.0</code>; .NET 8 and .NET 10</td></tr>
-<tr><td>Public API</td><td><code>H2SharpTools.GetDataProvider</code>, <code>CreateDataConnection</code>, <code>H2SharpProvider</code>, <code>H2SharpVersion</code></td></tr>
-<tr><td>Schema provider</td><td>reads <code>INFORMATION_SCHEMA</code> the way H2 2.5 keeps it</td></tr>
-<tr><td>Member translation</td><td>only the common one — H2-specific date and math translation is not written yet</td></tr>
+<tr><td>Provider suite</td><td><b>68 green, 10 red</b> on both frameworks — against an engine with <code>FINAL TABLE</code>, sequences and <code>AS</code> aliases</td></tr>
+<tr><td>Forum model suite</td><td><b>108 green, 5 red</b> — all five marked <code>BlockedByPort</code>, and all five forms the reference H2 2.5 accepts and the port does not read yet</td></tr>
+<tr><td>SQL generation</td><td>quoted identifiers, H2's types, <code>LIMIT</code>/<code>OFFSET</code> with a numeric parameter, concatenation through <code>CONCAT</code></td></tr>
+<tr><td>Capability flags</td><td>per H2 2.5, not per the current port</td></tr>
+<tr><td>Schema provider</td><td>reads <code>INFORMATION_SCHEMA</code> the way H2 2.5 keeps it — the catalogue is in the port now</td></tr>
+<tr><td>Member translation</td><td>dates (<code>EXTRACT</code>, <code>DATEADD</code>), mathematics, strings (<code>LOCATE</code>) — written</td></tr>
 <tr><td>Working against the engine</td><td>query, insert, filter with a parameter, order</td></tr>
 </table>
+<p class="sub">The ten red are port defects, listed below. Before identity columns there were fifteen — and the engine has since closed five more: identity DDL, the identity value read back through <code>FINAL TABLE</code>, sequences, the <code>AS</code> of a table alias, and the derived table.</p>
+
+<h3 id="types">Types are H2's</h3>
+<table class="ref">
+<tr><th>C#</th><th>H2</th><th>C#</th><th>H2</th></tr>
+<tr><td><code>bool</code></td><td><code>boolean</code></td><td><code>string</code></td><td><code>varchar</code></td></tr>
+<tr><td><code>byte</code>, <code>sbyte</code>, <code>short</code></td><td><code>smallint</code></td><td><code>char</code></td><td><code>char</code></td></tr>
+<tr><td><code>int</code></td><td><code>integer</code></td><td><code>string</code> (long)</td><td><code>clob</code></td></tr>
+<tr><td><code>long</code></td><td><code>bigint</code></td><td><code>byte[]</code></td><td><code>varbinary</code></td></tr>
+<tr><td><code>float</code></td><td><code>real</code></td><td><code>Guid</code></td><td><code>uuid</code></td></tr>
+<tr><td><code>double</code></td><td><code>double</code></td><td><code>DateTime</code></td><td><code>timestamp</code></td></tr>
+<tr><td><code>decimal</code></td><td><code>numeric</code></td><td><code>DateTimeOffset</code></td><td><code>timestamp with time zone</code></td></tr>
+<tr><td><code>TimeSpan</code></td><td><code>time</code></td><td><code>int[]</code></td><td><code>integer ARRAY</code></td></tr>
+</table>
+<p class="sub">The name of an array is the name of the type of its elements and the word <code>ARRAY</code> after it — <code>integer ARRAY</code>, <code>varchar ARRAY</code>. H2 does not know the brackets of PostgreSQL (<code>integer[]</code>). The mapping schema knows the array types, so the name does not have to be said by hand; it can still be, for a type the schema does not know.</p>
+<p class="sub">H2's functions for an array are <code>H2SharpSpecificExtensions.ArrayAppend</code>, <code>ArrayCat</code>, <code>ArrayContains</code>, <code>Cardinality</code> and <code>ArrayLength</code> — the functions of H2 2.5: <code>ARRAY_APPEND</code>, <code>ARRAY_CAT</code>, <code>ARRAY_CONTAINS</code>, <code>CARDINALITY</code> and <code>ARRAY_LENGTH</code>. The engine does not read the type <code>ARRAY</code> yet, so a table with such a column cannot be created.</p>
+
+<h3 id="generates">What it generates</h3>
+<table class="ref">
+<tr><th></th><th></th></tr>
+<tr><td>Identifiers</td><td>always quoted, the way H2 documents it: an unquoted identifier folds to upper case and a quoted one does not</td></tr>
+<tr><td>Types</td><td>H2's own: <code>varchar</code>, <code>char</code>, <code>numeric</code>, <code>varbinary</code>, <code>uuid</code>, <code>json</code>, <code>clob</code>, <code>blob</code>, <code>timestamp</code>, <code>time</code>, <code>boolean</code>, <code>smallint</code>, <code>integer</code>, <code>bigint</code>, <code>real</code>, <code>double</code></td></tr>
+<tr><td>Paging</td><td><code>LIMIT n</code> / <code>OFFSET n</code>, with the count as a parameter</td></tr>
+<tr><td>Concatenation</td><td><code>CONCAT</code>, which H2 has</td></tr>
+<tr><td>Parameters</td><td>named <code>@name</code>, which the engine rewrites into <code>?</code> before the statement is parsed</td></tr>
+<tr><td>Table alias</td><td>without the <code>AS</code>: the grammar allows both spellings, and this is the one the engine reads</td></tr>
+<tr><td>Type cast</td><td><code>CAST(x AS y)</code> — the shorter <code>x::y</code> is PostgreSQL's, and H2 2.5 does not have it</td></tr>
+</table>
+
+<h3 id="context">The data context</h3>
+<p class="sub"><code>DataConnection</code> is the whole API; <code>DataContext</code> is the same thing with a type that knows its tables. Both work with the async methods and both take part in a transaction. The last statement the provider sent is on the connection — <code>db.LastQuery</code> — and it is put there when the statement is sent, so a statement the engine refuses <i>while it runs</i> is there too; a statement it refuses to <i>read</i> never reaches the database and is not on the connection.</p>
 
 <h3 id="gaps">Port gaps it is waiting on</h3>
 <p class="sub">Listed in the provider's own <code>docs/DIVERGENCES.md</code>, where each one says who has to fix it — here they are all <b>port defects</b>, not limits of H2:</p>
 <table class="ref">
 <tr><th>Gap</th><th>Symptom</th></tr>
-<tr><td><code>INFORMATION_SCHEMA</code> catalogue differs from the reference</td><td>the catalogue name is the database path from the URL (<code>mem:db</code>), where H2 2.5 uses the database name; the <code>collation</code> column is empty</td></tr>
-<tr><td><code>DB_CLOSE_DELAY</code> and file databases</td><td><code>Not ported yet: Engine.openSession: persistent databases need the file store</code> — a pooled connection takes the database with it</td></tr>
-<tr><td>The engine's catalogue from the ADO layer</td><td><code>H2Connection.Session</code> is <code>internal</code>, while <code>Schema.GetAllTablesAndViews</code> wants a <code>SessionLocal</code></td></tr>
-<tr><td><code>JOIN</code></td><td><code>FROM T3 a LEFT JOIN T3 b</code> — expected <code>statement</code></td></tr>
-<tr><td><code>AS</code> before a table alias</td><td><code>SELECT a.Id FROM T3 AS a</code> — expected <code>statement</code></td></tr>
-<tr><td>identity DDL</td><td><code>CREATE TABLE T1 (Id INT GENERATED BY DEFAULT AS IDENTITY …)</code> — expected <code>)</code></td></tr>
-<tr><td><code>CREATE SEQUENCE</code></td><td><code>CREATE SEQUENCE "foo" AS integer …</code> — expected <code>TABLE</code></td></tr>
-<tr><td><code>IN</code> with a subquery</td><td><code>Parser.parseQuerySelect: IN with a subquery is not ported</code></td></tr>
+<tr><td>A catalogue column without a collation</td><td>the <code>collation</code> column is empty where H2 2.5 gives the collation of the database; the catalogue's name is now the database's name</td></tr>
+<tr><td><code>DB_CLOSE_DELAY</code> and a file database</td><td>the store itself is in the port and its format is H2 2.5-compatible, but a session does not open a file database — and a pooled connection takes the database with it</td></tr>
+<tr><td>The engine's catalogue from the ADO layer</td><td><code>H2Connection.Session</code> is <code>internal</code>, while the schema's table list wants a <code>SessionLocal</code></td></tr>
 </table>
 
 <h3 id="how">How the first bug was found</h3>
 <p class="sub">Worth telling, because it is the method the whole project follows: an <code>INSERT</code> wrote the <i>column names</i> instead of the values. The cause was not in the provider's own code but in linq2db's base <code>Convert</code>, which writes a parameter's name as it is — because the prefix is each provider's business: PostgreSQL and Oracle write <code>:</code>, H2 must write <code>@</code>. It was found with an <b>instrumented local copy</b> of linq2db's core, with the insert expression and the generated SQL printed under <code>LINQ2DB_DEBUG_SQL=1</code>. A published package cannot be instrumented, so the build moved to a local copy of the sources, with a property to point at it — building against the released package stays possible.</p>
 
-<p class="sub">Also in that repository: <code>docs/USAGE.md</code> is the guide (connecting, a data context, mapping, H2's functions, window functions, scaffolding, reading the catalogue, the SQL it generates, and what does not work yet), plus <code>AGENTS.md</code> for the rules of the work and <code>UPSTREAM.md</code> for its origin. License: MIT.</p>
+<h3 id="docs">The provider's own documentation</h3>
+<ul>
+<li><b><code>docs/USAGE.md</code></b> — the guide: quick start, getting the provider, opening a connection (and the connection string), the data context (and seeing the SQL), mapping, scaffolding, the functions of H2, table functions, window functions, the catalogue, the SQL it generates, what does not work yet, building and testing.</li>
+<li><b><code>docs/DIVERGENCES.md</code></b> — what the provider gets right and what the port still cannot do, with the state of each piece.</li>
+<li><b><code>AGENTS.md</code></b> — the rules the work follows; <b><code>UPSTREAM.md</code></b> — where it came from.</li>
+</ul>
+<p class="sub">License: MIT.</p>
 </section></main>
 <footer><div class="wrap"><span>H2Sharp · linq2db provider in its own repository</span><span style="margin-left:auto"><a href="./">← .NET API</a></span></div></footer></body></html>

@@ -2,68 +2,90 @@
 <header class="site-header"><div class="wrap"><a class="brand" href="../" style="text-decoration:none"><img src="../assets/logo.svg" alt="">H2Sharp <small>in progress</small></a><nav class="main"><a href="../">Home</a><a href="../sql/">SQL</a><a href="./" class="active">.NET API</a><a href="../status/">Status</a></nav></div></header>
 <main class="wrap"><section class="block">
 <h2>EF Core <span class="badge ok">in progress</span></h2>
-<p class="sub">The Entity Framework Core provider lives in its own repository, <a href="https://github.com/dimzon/h2sharp-efcore">dimzon/h2sharp-efcore</a> — it is a fork, and its own history and release cycle are separate from the engine's.</p>
+<p class="sub">The Entity Framework Core provider lives in its own repository, <a href="https://github.com/dimzon/h2sharp-efcore">dimzon/h2sharp-efcore</a> — a fork, and its own history and release cycle are separate from the engine's.</p>
 
-<div class="version-banner"><b>What it is:</b> a fork of <b>EFCore.PG</b> (Npgsql's provider for PostgreSQL), with PostgreSQL's surface replaced by H2's — the type mappings, the migrations SQL generator, the connection and the DDL are H2's. PostgreSQL-only features went with it: ranges, multiranges, network address types, full-text search, PostGIS. The point of forking rather than writing a provider is to keep <b>EF Core's own specification suite</b> as the measure: the tests are inherited from EF Core, not written for H2.</div>
+<div class="version-banner"><b>What it is:</b> a fork of <b>EFCore.PG</b> (Npgsql's provider for PostgreSQL), with PostgreSQL's surface replaced by H2's — the type mappings, the migrations SQL generator, the connection and the DDL are H2's. The point of forking rather than writing a provider is to keep <b>EF Core's own specification suite</b> as the measure: the tests are inherited from EF Core, not written for H2.</div>
 
 <h3 id="measurement">Measurement</h3>
-<p class="sub">Run against the pinned reference engine (<code>h2-2.5.259-SNAPSHOT.jar</code>), not against the port — a test against the port would only prove the port agrees with itself. The suite is split by trait, and <b>both runs are needed</b>:</p>
+<p class="sub">Run against the pinned reference engine (<code>h2-2.5.259-SNAPSHOT.jar</code>), not against the port — a test against the port would only prove the port agrees with itself.</p>
 <table class="ref">
-<tr><th>Run</th><th>Passed</th><th>Failed</th><th>Total</th></tr>
-<tr><td><code>dotnet test --filter "Category!=BlockedByPort"</code> — the provider is correct as far as the port allows</td><td>1034</td><td><b>0</b></td><td>1034</td></tr>
-<tr><td><code>dotnet test --filter "Category=BlockedByPort"</code> — the port defects the provider has signed up for</td><td>19</td><td>185</td><td>206</td></tr>
-<tr><td><b>Total</b></td><td><b>1053</b></td><td><b>185</b></td><td><b>1240</b></td></tr>
+<tr><th>Suite</th><th>Passed</th><th>Failed</th><th>Total</th></tr>
+<tr><td><code>H2Sharp.EntityFrameworkCore.FunctionalTests</code></td><td>994</td><td>386</td><td>1386</td></tr>
+<tr><td><code>H2Sharp.EntityFrameworkCore.Tests</code></td><td>120</td><td>0</td><td>120</td></tr>
+<tr><td><code>H2Sharp.EntityFrameworkCore.ModelTests</code></td><td>161</td><td>18</td><td>179</td></tr>
+<tr><td><b>Total</b></td><td><b>1275</b></td><td><b>404</b></td><td><b>1685</b></td></tr>
 </table>
-<p class="sub">A test that fails because a function was not ported stays in the suite, tagged <code>BlockedByPort</code>: removing it would take away the only signal that the port has not yet caught up with H2.</p>
+<p class="sub">Split by trait: the green run (<code>Category!=BlockedByPort</code>) is <b>1221 passed, 0 failed</b> — the provider is correct as far as the port allows; the blocked run is the list of port defects the provider has signed up for. A test failing because a function was not ported stays in the suite, tagged <code>BlockedByPort</code>: removing it would take away the only signal that the port has not yet caught up with H2.</p>
+<p class="sub">Two red are the <code>LegacyH2TypeMappingTest</code> cases written under <code>#if DEBUG</code>; their result depends on the order the functional suite ran in, not on the port. In Release they are absent and the unit suite is green throughout, 120 of 120.</p>
 
-<div class="version-banner"><b>The rule of the registry:</b> the provider does <b>not</b> bend to the engine's current gaps. It generates what H2 2.5 requires and records the divergence — an accommodation would be a temporary fix that pins a temporary limitation into observable behaviour.</div>
+<h3 id="coverage">Coverage</h3>
+<p class="sub">The forum model suite — tables, the same rows filled in, queries over those rows, edits and deletes, types, H2's functions, gathering rows into one text, raw queries and transactions — measures the provider's own coverage: <b>3800 of 9767 lines, 38.91%</b>. Eighteen of its tests are marked <code>BlockedByPort</code>.</p>
 
-<h3 id="using">Using it</h3>
-<pre class="mini"><code><span class="tok-k">await using var</span> ctx = <span class="tok-k">new</span> BlogContext();
-<span class="tok-k">await</span> ctx.Database.EnsureDeletedAsync();
-<span class="tok-k">await</span> ctx.Database.EnsureCreatedAsync();
+<h3 id="what-was-done">What the provider does with H2</h3>
+<table class="ref">
+<tr><th></th><th></th></tr>
+<tr><td>Entry point</td><td>renamed from the fork's: <code>UseH2</code>, <code>AddH2</code>, <code>H2:</code> annotations</td></tr>
+<tr><td>ADO layer</td><td>replaced with <code>H2Sharp.Data</code> — <code>H2Connection</code>, <code>H2Command</code>, <code>H2Parameter</code>, <code>H2DataReader</code>, <code>H2Transaction</code>, <code>H2ProviderFactory</code>, <code>H2ConnectionStringBuilder</code></td></tr>
+<tr><td>PostgreSQL surface removed</td><td>ranges and multiranges, inet/cidr/macaddr, tsvector/tsquery and full-text search, hstore, ltree, reg*, tid, pg_lsn, money, varbit, seven geometric types, unsigned types</td></tr>
+<tr><td>Types</td><td>written the way the engine's parser reads them: <code>VARCHAR</code>, <code>CLOB</code>, <code>VARBINARY</code>, <code>BLOB</code>, <code>TIMESTAMP</code>, <code>TIME</code>, <code>JSON</code></td></tr>
+<tr><td><code>SerialColumn</code></td><td>treated as identity: H2 has no <code>serial</code> pseudo-type, the only auto-generated column is <code>GENERATED BY DEFAULT AS IDENTITY</code></td></tr>
+<tr><td>Schema management</td><td><code>H2DatabaseCreator</code> works with <code>INFORMATION_SCHEMA.SCHEMATA</code>, <code>CREATE SCHEMA</code>, <code>DROP ALL OBJECTS</code> + <code>DROP SCHEMA CASCADE</code> — instead of PostgreSQL's server model</td></tr>
+<tr><td>Scaffolding</td><td><code>H2DatabaseModelFactory</code> reads <code>INFORMATION_SCHEMA</code> instead of <code>pg_catalog</code></td></tr>
+<tr><td>Error codes</td><td>H2's, taken from the engine: <code>DuplicateKey1</code> (23505), <code>TableOrViewAlreadyExists1</code> (42101), <code>LockTimeout1</code> (50200), <code>Deadlock1</code> (40001)</td></tr>
+<tr><td>Identifiers</td><td>always quoted: H2 folds an unquoted name to UPPER, so <code>title</code> would arrive as <code>TITLE</code> and the model would stop describing its own schema</td></tr>
+<tr><td>Connection string</td><td>translated into an H2 URL; everything that is not the database name goes into the URL tail as H2 settings (<code>MODE</code>, <code>DATABASE_TO_LOWER</code>, <code>DB_CLOSE_DELAY</code>)</td></tr>
+</table>
+<p class="sub">Verified: the generated DDL is accepted by the reference H2 2.5, run against the pinned jar.</p>
 
-ctx.Blogs.Add(<span class="tok-k">new</span>() { Name = <span class="tok-s">"FooBlog"</span> });
-<span class="tok-k">await</span> ctx.SaveChangesAsync();
+<h3 id="value-generation">Value generation</h3>
+<p class="sub">The reference has no <code>INSERT … RETURNING</code> — it refuses the clause — and no <code>SCOPE_IDENTITY()</code>, no <code>IDENTITY()</code> and no <code>LAST_INSERT_ID()</code>. The Npgsql model of "insert, then read the key back" transfers as the form H2's grammar has: the row the insert made is read through <code>FINAL TABLE</code>, so the insert is written as <code>SELECT "Id" FROM FINAL TABLE (INSERT INTO …)</code>. The port reads both the identity DDL and <code>FINAL TABLE</code>, so the value comes back. A sequence (<code>NEXT VALUE FOR</code>, <code>CURRENT VALUE FOR</code>) is the other way, and the port reads that too.</p>
 
-<span class="tok-k">var</span> fBlogs = <span class="tok-k">await</span> ctx.Blogs.Where(b =&gt; b.Name.StartsWith(<span class="tok-s">"F"</span>)).ToListAsync();
+<h3 id="strings">Strings</h3>
+<p class="sub">A string is a <code>CHARACTER VARYING</code> in H2 2.5 — without a length it takes the maximum, so a string of any size fits. <code>CHARACTER LARGE OBJECT</code> is a different thing: H2 keeps such values out of memory and streams them. The port has the storage of a large object but not the way out of it into a result, so such a column cannot be read back yet.</p>
 
-<span class="tok-k">public class</span> BlogContext : DbContext
-{
-    <span class="tok-k">public</span> DbSet&lt;Blog&gt; Blogs { get; set; }
-
-    <span class="tok-k">protected override void</span> OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        =&gt; optionsBuilder.UseH2(<span class="tok-s">"Data Source=mem:mydatabase"</span>);
-}</code></pre>
-<p class="sub">The connection string is the ADO.NET spelling: <code>Data Source=mem:mydatabase</code> is translated to <code>jdbc:h2:mem:mydatabase</code>, and a JDBC URL is accepted as it is.</p>
+<h3 id="scaffolding">Scaffolding</h3>
+<pre class="mini"><code>dotnet ef dbcontext scaffold <span class="tok-s">"Data Source=mem:mydatabase"</span> H2Sharp</code></pre>
+<p class="sub">The provider's part is written — it reads <code>INFORMATION_SCHEMA</code> the way H2 2.5 keeps it — and it <b>refuses with a message naming the missing engine feature</b> rather than returning an empty model: an empty model would be indistinguishable from an empty database, and every migration made from it would try to recreate tables that are there. What is still missing is <code>CREATE SCHEMA</code>: the scaffolding test makes a schema of its own before it asks about the tables in it, and the nine scaffolding tests are marked as the engine's defects until it does.</p>
 
 <h3 id="functions">H2's own functions</h3>
-<p class="sub"><code>EF.Functions</code> reaches the database's built-ins — the date/time, string, binary, number and bit ones — each checked against the engine:</p>
+<p class="sub"><code>EF.Functions</code> reaches the built-in functions of the database — the ones H2 has, each checked against the engine:</p>
 <pre class="mini"><code>EF.Functions.DateAdd(<span class="tok-s">"DAY"</span>, 1, blog.Created)   <span class="tok-c">// DATEADD('DAY', 1, ...)</span>
 EF.Functions.Locate(blog.Name, <span class="tok-s">"foo"</span>)           <span class="tok-c">// LOCATE(...) — H2 takes the substring first</span>
 EF.Functions.Extract(<span class="tok-s">"YEAR"</span>, blog.Created)      <span class="tok-c">// YEAR(...)</span>
 EF.Functions.LeftPad(blog.Name, 10, <span class="tok-s">"0"</span>)        <span class="tok-c">// LPAD(...)</span></code></pre>
-
-<h3 id="gaps">Engine gaps the provider is waiting on</h3>
-<p class="sub">Numbered in the provider's own <code>docs/DIVERGENCES.md</code>, where each one says who has to fix it:</p>
 <table class="ref">
-<tr><th>#</th><th>Gap</th><th>Symptom</th></tr>
-<tr><td>1</td><td>Quoted column reference</td><td><code>SELECT "e"."Id" FROM T</code> → <code>SessionLocal.getResolver: the query layer is not ported</code></td></tr>
-<tr><td>2</td><td>Table alias through <code>AS</code></td><td>the implicit alias (<code>FROM T e</code>) works; <code>FROM T AS "e"</code> is what the provider needs</td></tr>
-<tr><td>3</td><td><code>GENERATED … AS IDENTITY</code></td><td>the parser rejects <code>GENERATED</code>; the object model already knows identity columns</td></tr>
-<tr><td>4</td><td><code>FOREIGN KEY</code> in <code>CREATE TABLE</code></td><td>constraints — ROADMAP phase 7</td></tr>
-<tr><td>5</td><td><code>INTERVAL</code> types</td><td>the parser does not know them; without the qualifier <code>INTERVAL</code> is not a type</td></tr>
-<tr><td>6</td><td><code>DB_CLOSE_DELAY</code> for an in-memory database</td><td>the database disappears with the last connection, so <code>EnsureCreated</code> cannot work</td></tr>
-<tr><td>7</td><td><code>INFORMATION_SCHEMA</code></td><td>the catalogue — without it scaffolding and the schema registry are impossible</td></tr>
-<tr><td>8</td><td><code>CREATE SEQUENCE</code>, <code>NEXT VALUE FOR</code></td><td>the parser does not know them; needed for key generation if identity does not arrive</td></tr>
+<tr><th>Group</th><th>Functions</th></tr>
+<tr><td>Date and time</td><td><code>DateAdd</code>, <code>DateDiff</code>, <code>DateTrunc</code>, <code>Extract</code>, <code>DayName</code>, <code>MonthName</code></td></tr>
+<tr><td>Strings</td><td><code>ILike</code>, <code>Locate</code>, <code>LeftPad</code>, <code>RightPad</code>, <code>Translate</code>, <code>Repeat</code>, <code>Space</code>, <code>QuoteIdentifier</code>, <code>Soundex</code>, <code>SoundexDifference</code>, <code>Ascii</code>, <code>Char</code>, <code>Chr</code>, <code>StringDecode</code>, <code>StringEncode</code>, <code>StringToUtf8</code>, <code>Utf8ToString</code>, <code>HexToRaw</code>, <code>RawToHex</code>, <code>Insert</code>, <code>ConcatWithSeparator</code></td></tr>
+<tr><td>Numbers</td><td><code>Sign</code>, <code>Truncate</code>, <code>Cotangent</code>, <code>RoundMagic</code></td></tr>
+<tr><td>Bits</td><td><code>BitAnd</code> … <code>RotateRight</code>, the whole family</td></tr>
+<tr><td>Compressed text</td><td><code>Compress</code>, <code>Expand</code></td></tr>
+</table>
+<p class="sub"><code>ILike</code> is an operator in H2, not a function, so the text it stands on has to be a column. <code>LOCATE</code> takes the substring first — the other way round from the function of the SQL standard.</p>
+
+<h3 id="window">Window functions</h3>
+<p class="sub">H2 2.5 has them — <code>ROW_NUMBER</code>, <code>RANK</code>, <code>DENSE_RANK</code>, <code>LAG</code>, <code>LEAD</code>, <code>FIRST_VALUE</code>, <code>LAST_VALUE</code>, <code>NTH_VALUE</code>, <code>NTILE</code>, <code>PERCENT_RANK</code>, <code>CUME_DIST</code> — but Entity Framework Core 9 does not translate them into a query, so there is nothing for the provider to write. A provider cannot add what the framework never asks for.</p>
+
+<h3 id="range">The range table</h3>
+<p class="sub">H2 has a table function giving a row per number of a range: <code>SYSTEM_RANGE(min, max[, step])</code>. The engine reads it, and the provider asks for it the way a caller asks for any statement it writes itself — through <code>FromSqlRaw</code>, over an entity type without a key. The step goes to the start and the range stops at the end, so <code>SYSTEM_RANGE(1, 10, 2)</code> gives 1, 3, 5, 7, 9, as the reference gives. The engine reads the range table as a plain source: a derived table around it is not read yet, and EF Core's own queries of an entity with a key put the raw SQL into a derived table, so a keyless type is the one that works.</p>
+
+<h3 id="gaps">Engine gaps it is waiting on</h3>
+<p class="sub">Numbered in the provider's own <code>docs/DIVERGENCES.md</code>, where each one says who has to fix it — here they are all <b>port defects</b>, not limits of H2:</p>
+<table class="ref">
+<tr><th>Gap</th><th>Symptom</th></tr>
+<tr><td><code>CREATE SCHEMA</code></td><td>the scaffolding makes a schema of its own before asking about the tables in it</td></tr>
+<tr><td>A derived table</td><td><code>FROM (SELECT …) "t"</code> — <code>Table "(" not found</code></td></tr>
+<tr><td><code>IN (subquery)</code></td><td><code>IN with a subquery is not ported</code></td></tr>
 </table>
 
-<h3 id="also">Also in that repository</h3>
+<h3 id="docs">The provider's own documentation</h3>
 <ul>
-<li><b>Plugins</b> for <code>NodaTime</code> and <code>NetTopologySuite</code>, ported onto EF value converters.</li>
-<li><b>Docs</b>: <code>docs/DIVERGENCES.md</code> (what differs from EF Core and from H2), <code>docs/DIALECT.md</code> (the SQL it generates), <code>docs/ROADMAP.md</code> (the plan), <code>UPSTREAM.md</code> (the EFCore.PG commit it forks from).</li>
-<li><b>Still to do</b>: the ADO layer is the <code>Npgsql</code> package for now; swapping it for <code>H2Sharp.Data</code> is a separate stage.</li>
-<li>License: the fork keeps <b>EFCore.PG's PostgreSQL License</b>; the engine itself is MPL-2.0 / EPL-1.0 and is not part of that repository.</li>
+<li><b><code>docs/USAGE.md</code></b> — the guide: quick start, getting the provider, opening a connection, the context, mapping (value generation, strings), migrations, scaffolding, H2's functions, window functions, the catalogue, the range table, the SQL it generates, what does not work yet, building and testing.</li>
+<li><b><code>docs/DIALECT.md</code></b> — what the provider is verified against: every claim was checked by <i>running SQL</i>, the reference side being the pinned H2 jar on the JVM and the port side the H2Sharp ADO.NET layer.</li>
+<li><b><code>docs/DIVERGENCES.md</code></b> — what differs from EF Core and from H2, and what is the port's work.</li>
+<li><b><code>docs/ROADMAP.md</code></b> — what is done, and what comes next (an AST entry instead of SQL text, among other things).</li>
+<li><b><code>UPSTREAM.md</code></b> — the EFCore.PG commit this fork starts from.</li>
 </ul>
+<p class="sub">The provider is built for <b>.NET 8</b> and <b>.NET 10</b>, and so is the engine under it. While the engine is unfinished, the providers are pre-release: the engine is a dependency of both, and a stable package cannot depend on a pre-release one.</p>
 </section></main>
 <footer><div class="wrap"><span>H2Sharp · EF Core provider in its own repository</span><span style="margin-left:auto"><a href="./">← .NET API</a></span></div></footer></body></html>
