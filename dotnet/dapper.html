@@ -13,16 +13,16 @@ _ = con.Execute(<span class="tok-s">"DROP TABLE IF EXISTS PERSON"</span>);
 _ = con.Execute(<span class="tok-s">"CREATE TABLE PERSON(ID INT PRIMARY KEY, NAME VARCHAR(100) NOT NULL, AGE INT)"</span>);
 
 <span class="tok-k">int</span> inserted = con.Execute(
-    <span class="tok-s">"INSERT INTO PERSON(ID, NAME, AGE) VALUES (@Id, @Name, @Age)"</span>,
+    <span class="tok-s">"INSERT INTO PERSON(ID, NAME, AGE) VALUES ($Id, $Name, $Age)"</span>,
     <span class="tok-k">new</span> Person { Id = 1, Name = <span class="tok-s">"Ada"</span>, Age = 36 });
 
 <span class="tok-k">var</span> rows = con.Query&lt;Person&gt;(<span class="tok-s">"SELECT ID, NAME, AGE FROM PERSON ORDER BY ID"</span>).AsList();
 <span class="tok-k">int</span> updated = con.Execute(
-    <span class="tok-s">"UPDATE PERSON SET AGE = @Age WHERE ID = @Id"</span>, <span class="tok-k">new</span> { Id = 1, Age = 37 });
+    <span class="tok-s">"UPDATE PERSON SET AGE = $Age WHERE ID = $Id"</span>, <span class="tok-k">new</span> { Id = 1, Age = 37 });
 <span class="tok-k">int</span> count   = con.QuerySingle&lt;<span class="tok-t">int</span>&gt;(<span class="tok-s">"SELECT COUNT(*) FROM PERSON"</span>);
-con.Execute(<span class="tok-s">"DELETE FROM PERSON WHERE ID = @Id"</span>, <span class="tok-k">new</span> { Id = 1 });</code></pre>
+con.Execute(<span class="tok-s">"DELETE FROM PERSON WHERE ID = $Id"</span>, <span class="tok-k">new</span> { Id = 1 });</code></pre>
 
-<div class="version-banner"><b>Gate (phase 8) — closed twice over.</b> <code>DapperSmokeTests</code>: open, create, insert, update, select (repeat after the update on purpose), scalar path, delete. Plus <code>ParametersAreNotConcatenatedIntoTheText</code>: the statement keeps its <code>@Id</code> placeholders whatever the value is, so the provider is not a SQL-injection vector. And the inherited <a href="https://github.com/rowanswim/AdoNet.Specification.Tests">AdoNet.Specification.Tests</a> suite is 293 of 293 green.</div>
+<div class="version-banner"><b>Gate (phase 8) — closed twice over.</b> <code>DapperSmokeTests</code>: open, create, insert, update, select (repeat after the update on purpose), scalar path, delete. Plus <code>ParametersAreNotConcatenatedIntoTheText</code>: the statement keeps its <code>$Id</code> placeholders whatever the value is, so the provider is not a SQL-injection vector. And the inherited <a href="https://github.com/rowanswim/AdoNet.Specification.Tests">AdoNet.Specification.Tests</a> suite is 293 of 293 green.</div>
 
 <p class="sub">Dapper's own <code>IDbTransaction</code> support works too — <code>BeginTransaction</code> hands out a real transaction over the engine's own one.</p>
 

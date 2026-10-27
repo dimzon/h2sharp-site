@@ -7,19 +7,19 @@
 <div class="version-banner"><b>What it is:</b> a fork of <b>EFCore.PG</b> (Npgsql's provider for PostgreSQL), with PostgreSQL's surface replaced by H2's — the type mappings, the migrations SQL generator, the connection and the DDL are H2's. The point of forking rather than writing a provider is to keep <b>EF Core's own specification suite</b> as the measure: the tests are inherited from EF Core, not written for H2.</div>
 
 <h3 id="measurement">Measurement</h3>
-<p class="sub">Run against the pinned reference engine (<code>h2-2.5.259-SNAPSHOT.jar</code>), not against the port — a test against the port would only prove the port agrees with itself.</p>
+<p class="sub">Run against the pinned reference engine (<code>h2-2.5.259-SNAPSHOT.jar</code>), not against the port — a test against the port would only prove the port agrees with itself. The numbers below were taken on 2026-10-27 against engine <code>85b425e</code>, on net9.0 and net10.0.</p>
 <table class="ref">
 <tr><th>Suite</th><th>Passed</th><th>Failed</th><th>Total</th></tr>
-<tr><td><code>H2Sharp.EntityFrameworkCore.FunctionalTests</code></td><td>994</td><td>386</td><td>1386</td></tr>
-<tr><td><code>H2Sharp.EntityFrameworkCore.Tests</code></td><td>120</td><td>0</td><td>120</td></tr>
-<tr><td><code>H2Sharp.EntityFrameworkCore.ModelTests</code></td><td>161</td><td>18</td><td>179</td></tr>
-<tr><td><b>Total</b></td><td><b>1275</b></td><td><b>404</b></td><td><b>1685</b></td></tr>
+<tr><td><code>H2Sharp.EntityFrameworkCore.FunctionalTests</code></td><td>5742</td><td>6</td><td>5762 (14 skipped)</td></tr>
+<tr><td><code>H2Sharp.EntityFrameworkCore.Tests</code></td><td>129</td><td>0</td><td>129</td></tr>
+<tr><td><code>H2Sharp.EntityFrameworkCore.ModelTests</code></td><td>316</td><td>1</td><td>317</td></tr>
+<tr><td><b>Green gate</b></td><td><b>6187</b></td><td><b>7</b></td><td><b>6208</b></td></tr>
 </table>
-<p class="sub">Split by trait: the green run (<code>Category!=BlockedByPort</code>) is <b>1221 passed, 0 failed</b> — the provider is correct as far as the port allows; the blocked run is the list of port defects the provider has signed up for. A test failing because a function was not ported stays in the suite, tagged <code>BlockedByPort</code>: removing it would take away the only signal that the port has not yet caught up with H2.</p>
-<p class="sub">Two red are the <code>LegacyH2TypeMappingTest</code> cases written under <code>#if DEBUG</code>; their result depends on the order the functional suite ran in, not on the port. In Release they are absent and the unit suite is green throughout, 120 of 120.</p>
+<p class="sub">Split by trait: the green run (<code>Category!=BlockedByPort</code>) is what the provider gets right as far as the port allows; the blocked run is the list of port defects the provider has signed up for. A test failing because a function was not ported stays in the suite, tagged <code>BlockedByPort</code>: removing it would take away the only signal that the port has not yet caught up with H2.</p>
+<p class="sub">A week of engine work took the green gate from <b>1221</b> to <b>6187</b> tests with no provider change — the engine now reads the mixed batches, set operations, aggregates and expressions the suite asks for. The seven reds at this head: the join-entity property-values copy, a proxy test that loads navigations from several threads, and the model's joined-update example — each a live port defect, each visible.</p>
 
 <h3 id="coverage">Coverage</h3>
-<p class="sub">The forum model suite — tables, the same rows filled in, queries over those rows, edits and deletes, types, H2's functions, gathering rows into one text, raw queries and transactions — measures the provider's own coverage: <b>3800 of 9767 lines, 38.91%</b>. Eighteen of its tests are marked <code>BlockedByPort</code>.</p>
+<p class="sub">The forum model suite — tables, the same rows filled in, queries over those rows, edits and deletes, types, H2's functions, gathering rows into one text, raw queries and transactions — measures the provider's own coverage: <b>61.76%</b>, and the threshold lives in <code>tools/CheckCoverage.ps1</code> and only goes up.</p>
 
 <h3 id="what-was-done">What the provider does with H2</h3>
 <table class="ref">
@@ -45,7 +45,7 @@
 
 <h3 id="scaffolding">Scaffolding</h3>
 <pre class="mini"><code>dotnet ef dbcontext scaffold <span class="tok-s">"Data Source=mem:mydatabase"</span> H2Sharp</code></pre>
-<p class="sub">The provider's part is written — it reads <code>INFORMATION_SCHEMA</code> the way H2 2.5 keeps it — and it <b>refuses with a message naming the missing engine feature</b> rather than returning an empty model: an empty model would be indistinguishable from an empty database, and every migration made from it would try to recreate tables that are there. What is still missing is <code>CREATE SCHEMA</code>: the scaffolding test makes a schema of its own before it asks about the tables in it, and the nine scaffolding tests are marked as the engine's defects until it does.</p>
+<p class="sub">The provider's part is written — it reads <code>INFORMATION_SCHEMA</code> the way H2 2.5 keeps it — and it <b>refuses with a message naming the missing engine feature</b> rather than returning an empty model: an empty model would be indistinguishable from an empty database, and every migration made from it would try to recreate tables that are there. <code>CREATE SCHEMA</code>, the thing the scaffolding test waits for, is in the engine now.</p>
 
 <h3 id="functions">H2's own functions</h3>
 <p class="sub"><code>EF.Functions</code> reaches the built-in functions of the database — the ones H2 has, each checked against the engine:</p>
@@ -67,16 +67,18 @@ EF.Functions.LeftPad(blog.Name, 10, <span class="tok-s">"0"</span>)        <span
 <p class="sub">H2 2.5 has them — <code>ROW_NUMBER</code>, <code>RANK</code>, <code>DENSE_RANK</code>, <code>LAG</code>, <code>LEAD</code>, <code>FIRST_VALUE</code>, <code>LAST_VALUE</code>, <code>NTH_VALUE</code>, <code>NTILE</code>, <code>PERCENT_RANK</code>, <code>CUME_DIST</code> — but Entity Framework Core 9 does not translate them into a query, so there is nothing for the provider to write. A provider cannot add what the framework never asks for.</p>
 
 <h3 id="range">The range table</h3>
-<p class="sub">H2 has a table function giving a row per number of a range: <code>SYSTEM_RANGE(min, max[, step])</code>. The engine reads it, and the provider asks for it the way a caller asks for any statement it writes itself — through <code>FromSqlRaw</code>, over an entity type without a key. The step goes to the start and the range stops at the end, so <code>SYSTEM_RANGE(1, 10, 2)</code> gives 1, 3, 5, 7, 9, as the reference gives. The engine reads the range table as a plain source: a derived table around it is not read yet, and EF Core's own queries of an entity with a key put the raw SQL into a derived table, so a keyless type is the one that works.</p>
+<p class="sub">H2 has a table function giving a row per number of a range: <code>SYSTEM_RANGE(min, max[, step])</code>. The engine reads it, and the provider asks for it the way a caller asks for any statement it writes itself — through <code>FromSqlRaw</code>, over an entity type without a key. The step goes to the start and the range stops at the end, so <code>SYSTEM_RANGE(1, 10, 2)</code> gives 1, 3, 5, 7, 9, as the reference gives. The engine reads derived tables now, so the keyless-type workaround is no longer forced by the grammar — the provider simply has not needed to change this surface.</p>
 
 <h3 id="gaps">Engine gaps it is waiting on</h3>
 <p class="sub">Numbered in the provider's own <code>docs/DIVERGENCES.md</code>, where each one says who has to fix it — here they are all <b>port defects</b>, not limits of H2:</p>
 <table class="ref">
 <tr><th>Gap</th><th>Symptom</th></tr>
-<tr><td><code>CREATE SCHEMA</code></td><td>the scaffolding makes a schema of its own before asking about the tables in it</td></tr>
-<tr><td>A derived table</td><td><code>FROM (SELECT …) "t"</code> — <code>Table "(" not found</code></td></tr>
-<tr><td><code>IN (subquery)</code></td><td><code>IN with a subquery is not ported</code></td></tr>
+<tr><td>A joined update reduced to a subquery</td><td>the model suite's one red: the provider writes a correlated <code>EXISTS</code> for the update and the port refuses the form</td></tr>
+<tr><td><code>ALTER TABLE</code> beyond <code>ADD</code>/<code>RENAME TO</code></td><td><code>DROP COLUMN</code> and the remaining actions — a small family of tests</td></tr>
+<tr><td><code>CREATE TYPE … AS ENUM</code>, <code>COMMENT ON</code>, <code>INCLUDE</code> indexes</td><td>the migrations the suite asks for</td></tr>
+<tr><td>A second transaction per connection</td><td>the ADO layer refuses one; sixty tests of the transaction family wait</td></tr>
 </table>
+<p class="sub">The big one is gone: <code>Prepared.update</code> — the statement-update path 3892 functional tests waited on — is read now (issue #67, engine commit <code>cf5e363</code>), and the green gate jumped by thousands in a day. <code>CREATE SCHEMA</code> and the derived table, the older blockers of scaffolding and paging, are in the engine too.</p>
 
 <h3 id="docs">The provider's own documentation</h3>
 <ul>

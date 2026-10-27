@@ -31,7 +31,7 @@
     <div>
       <span class="eyebrow"><span class="pulse"></span>H2 Database port &nbsp;·&nbsp; embeddable SQL engine for .NET</span>
       <h1>H2, now <span class="grad">on .NET</span></h1>
-      <p class="lead">H2Sharp brings the legendary Java H2 engine to C#. It executes real SQL today — <code>JOIN</code>, <code>GROUP BY</code>, aggregates, sequences, identity columns, <code>FINAL TABLE</code>, the catalogue — behind a standard ADO.NET provider that is 293 of 293 green on its conformance suite. Two provider projects run alongside it: one for Entity Framework Core, one for linq2db. And a database file written by H2Sharp opens in the reference Java H2, and vice versa.</p>
+      <p class="lead">H2Sharp brings the legendary Java H2 engine to C#. It executes real SQL today — <code>JOIN</code>, subqueries, <code>GROUP BY</code>, window functions, <code>MERGE</code>, views, sequences, identity columns, arrays, JSON, the catalogue — behind a standard ADO.NET provider whose conformance suite is fully green. Two provider projects run alongside it: one for Entity Framework Core, one for linq2db. A database file written by H2Sharp opens in the reference Java H2, and vice versa — now for live file databases, not just byte-level compat.</p>
       <div class="cta">
         <a class="btn primary" href="sql/">SQL documentation →</a>
         <a class="btn" href="dotnet/dapper.html">Dapper examples</a>
@@ -40,9 +40,9 @@
       <div class="strip">
         <span class="chip">H2 <b>2.5.252</b> + pin <b>27c5170</b></span>
         <span class="chip"><b>ADO.NET</b> spec <b>293/293</b> ✓</span>
-        <span class="chip"><b>947</b> SQL conformance tests · <b>357</b> pass</span>
-        <span class="chip"><b>EF Core</b> 1221 ✓ · <b>linq2db</b> 176 ✓</span>
-        <span class="chip"><b>in-memory</b> engine</span>
+        <span class="chip"><b>952</b> SQL conformance tests · <b>786</b> pass</span>
+        <span class="chip"><b>EF Core</b> 6187 · <b>linq2db</b> 256 <b>green gate</b></span>
+        <span class="chip"><b>in-memory</b> + <b>file</b> engine</span>
         <span class="chip"><b>MVStore</b> file-compat ✓</span>
       </div>
     </div>
@@ -76,7 +76,7 @@
 <span class="tok-k">using</span> IDbConnection con = <span class="tok-k">new</span> H2Connection(<span class="tok-s">"jdbc:h2:mem:demo"</span>);
 con.Open();
 con.Execute(<span class="tok-s">"CREATE TABLE PERSON(ID INT PRIMARY KEY, NAME VARCHAR)"</span>);
-con.Execute(<span class="tok-s">"INSERT INTO PERSON VALUES(@Id, @Name)"</span>, <span class="tok-k">new</span> { Id = 1, Name = <span class="tok-s">"Ada"</span> });
+con.Execute(<span class="tok-s">"INSERT INTO PERSON VALUES($Id, $Name)"</span>, <span class="tok-k">new</span> { Id = 1, Name = <span class="tok-s">"Ada"</span> });
 
 <span class="tok-k">var</span> rows = con.Query&lt;Person&gt;(<span class="tok-s">"SELECT * FROM PERSON"</span>);</code></pre></div>
       <div><p class="sub">Build and test the port:</p>
@@ -91,7 +91,7 @@ dotnet add package H2Sharp --prerelease</code></pre></div>
   <section class="block">
     <h2>SQL reference, pinned to the ported version</h2>
     <p class="sub">The original lives on h2database.com and moves on. We keep a snapshot at commit <code>27c5170</code> (H2 2.5.x, October 2026) in our own design — with a link to the original and H2 Group attribution.</p>
-    <div class="version-banner"><b>Read this first:</b> this section mirrors H2's <b>full</b> grammar, which is the reference the port is written against. The engine executes a <b>subset</b> today — no <code>JOIN</code>, subqueries, window functions or <code>MERGE</code> yet. What actually runs is listed on the <a href="status/">status page</a>.</div>
+    <div class="version-banner"><b>Read this first:</b> this section mirrors H2's <b>full</b> grammar, which is the reference the port is written against. The engine executes most of it today — <code>JOIN</code>, subqueries, window functions, <code>MERGE</code>, views, arrays, JSON and file databases all run — but rights and privileges, triggers and a few DDL families still refuse. What actually runs is listed on the <a href="status/">status page</a>.</div>
     <div class="version-banner">Snapshot: H2 <code>2.5.252 (2026-09-23)</code> + H2Sharp pin <code>27c5170 (2026-10-06)</code> · Original: <a href="https://www.h2database.com/html/main.html">h2database.com</a> · <a href="https://github.com/h2database/h2database">upstream commit</a> · Pin delta — a <code>DROP ALL OBJECTS</code> fix for local temp tables; grammar matches.</div>
     <div class="grid">
       <div class="card"><h3>Commands <span class="badge ok">mirror</span></h3><p>SELECT, INSERT, UPDATE, DELETE, MERGE, DDL — the full command syntax.</p><a class="go" href="sql/#commands">Open →</a></div>
@@ -109,8 +109,8 @@ dotnet add package H2Sharp --prerelease</code></pre></div>
     <div class="grid">
       <div class="card"><h3>System.Data <span class="badge ok">available</span></h3><p>H2Connection, H2Command, H2Parameter, H2DataReader, H2Transaction, H2DataAdapter, H2ProviderFactory. Transactions work.</p><a class="go" href="dotnet/system-data.html">Reference →</a></div>
       <div class="card"><h3>Dapper <span class="badge ok">works today</span></h3><p>End-to-end over <code>IDbConnection</code>: open, create, insert, update, select, delete, transactions.</p><a class="go" href="dotnet/dapper.html">Examples →</a></div>
-      <div class="card"><h3>EF Core <span class="badge ok">in progress</span></h3><p>Its own repository: a fork of EFCore.PG with H2's surface. 1221 inherited EF Core tests pass, none red.</p><a class="go" href="dotnet/efcore.html">Details →</a></div>
-      <div class="card"><h3>linq2db <span class="badge ok">in progress</span></h3><p>Its own repository, written from scratch against linq2db's public API. 68 provider tests and 108 forum-model tests green.</p><a class="go" href="dotnet/linq2db.html">Details →</a></div>
+      <div class="card"><h3>EF Core <span class="badge ok">in progress</span></h3><p>Its own repository: a fork of EFCore.PG with H2's surface. Green gate: 6187 of 6208 inherited EF Core tests pass.</p><a class="go" href="dotnet/efcore.html">Details →</a></div>
+      <div class="card"><h3>linq2db <span class="badge ok">in progress</span></h3><p>Its own repository, written from scratch against linq2db's public API. 76 provider tests and 180 forum-model tests green — one blocked test left.</p><a class="go" href="dotnet/linq2db.html">Details →</a></div>
       <div class="card"><h3>Native API <span class="badge plan">planned</span></h3><p>Direct engine access. The engine executes real queries now; a public surface is not promised yet.</p><a class="go" href="dotnet/native.html">Stub →</a></div>
       <div class="card"><h3>Port status</h3><p>Phases 0–10: what is done / partial / refuses / todo — from the code.</p><a class="go" href="status/">Open →</a></div>
     </div>
@@ -118,17 +118,18 @@ dotnet add package H2Sharp --prerelease</code></pre></div>
 
   <section class="block">
     <h2>Where we are</h2>
-    <p class="sub">Read from the repositories themselves. Honestly: the engine executes real queries — <code>JOIN</code>, sequences, identity columns, the catalogue — the ADO.NET provider is 293/293 on its conformance suite, and both provider projects are already running alongside it. What is left: <code>MERGE</code>, window functions, file databases, and constraints and rights.</p>
+    <p class="sub">Read from the repositories themselves. Honestly: the engine executes real queries — <code>JOIN</code>, subqueries, window functions, <code>MERGE</code>, views, sequences, identity columns, arrays, the catalogue, and file databases on the reference's on-disk format — the ADO.NET provider is 293/293 on its conformance suite with zero red, and both provider projects run alongside it. What is left: rights and privileges, triggers, Java aliases, LOB streaming out of a row, and the conformance tail.</p>
     <div class="timeline">
-      <div class="phase done"><b>0–2 · Bootstrap, Foundation</b><span>done — CI, oracle, MVStore file-compat</span></div>
+      <div class="phase done"><b>0–2 · Bootstrap, Foundation, MVStore</b><span>done — CI, oracle, file-compat both ways</span></div>
       <div class="phase done"><b>3 · Values, schema</b><span>done for what is portable</span></div>
-      <div class="phase now"><b>4 · Expressions</b><span>partial — built-ins ported, window functions not</span></div>
-      <div class="phase now"><b>5 · Commands/SQL</b><span>partial — SELECT, JOIN, DML, DDL, sequences</span></div>
-      <div class="phase now"><b>6 · Engine</b><span>partial</span></div>
-      <div class="phase done"><b>8 · ADO.NET</b><span>done — 293/293 spec, transactions</span></div>
-      <div class="phase now"><b>9 · EF Core</b><span>in progress — 1221 EF Core tests green</span></div>
-      <div class="phase now"><b>linq2db</b><span>in progress — own repository</span></div>
-      <div class="phase"><b>7, 10</b><span>todo — constraints, conformance polish</span></div>
+      <div class="phase done"><b>4 · Expressions</b><span>done in the main — built-ins and window functions run</span></div>
+      <div class="phase done"><b>5 · Commands/SQL</b><span>done in the main — SELECT, JOIN, MERGE, views, DML, DDL</span></div>
+      <div class="phase now"><b>6 · Engine</b><span>partial — file databases run; sessions, locks, polish</span></div>
+      <div class="phase now"><b>7 · Constraints, rights</b><span>partial — UNIQUE/CHECK/FK in; users, roles, rights not</span></div>
+      <div class="phase done"><b>8 · ADO.NET</b><span>done — 293/293 spec, transactions, $name parameters</span></div>
+      <div class="phase now"><b>9 · EF Core</b><span>in progress — green gate 2465 and counting</span></div>
+      <div class="phase now"><b>linq2db</b><span>in progress — 256 tests green, one blocked left</span></div>
+      <div class="phase now"><b>10 · Conformance</b><span>in progress — 786 of 952 pass</span></div>
     </div>
   </section>
 

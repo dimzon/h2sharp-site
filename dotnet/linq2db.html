@@ -33,15 +33,16 @@
 <table class="ref">
 <tr><th></th><th></th></tr>
 <tr><td>Builds</td><td>yes, against the released <code>linq2db 6.5.0</code>; .NET 8 and .NET 10</td></tr>
-<tr><td>Provider suite</td><td><b>68 green, 10 red</b> on both frameworks — against an engine with <code>FINAL TABLE</code>, sequences and <code>AS</code> aliases</td></tr>
-<tr><td>Forum model suite</td><td><b>108 green, 5 red</b> — all five marked <code>BlockedByPort</code>, and all five forms the reference H2 2.5 accepts and the port does not read yet</td></tr>
+<tr><td>Provider suite</td><td><b>76 of 76 green</b> on both frameworks — measured against engine <code>85b425e</code> (2026-10-26). One test stays under <code>BlockedByPort</code>: the data-context example, which needs <code>DB_CLOSE_DELAY</code>, because an in-memory database must outlive a pooled connection</td></tr>
+<tr><td>Forum model suite</td><td><b>180 of 180 green</b> — the last five <code>BlockedByPort</code> tests unblocked by the engine and live now</td></tr>
 <tr><td>SQL generation</td><td>quoted identifiers, H2's types, <code>LIMIT</code>/<code>OFFSET</code> with a numeric parameter, concatenation through <code>CONCAT</code></td></tr>
 <tr><td>Capability flags</td><td>per H2 2.5, not per the current port</td></tr>
 <tr><td>Schema provider</td><td>reads <code>INFORMATION_SCHEMA</code> the way H2 2.5 keeps it — the catalogue is in the port now</td></tr>
 <tr><td>Member translation</td><td>dates (<code>EXTRACT</code>, <code>DATEADD</code>), mathematics, strings (<code>LOCATE</code>) — written</td></tr>
-<tr><td>Working against the engine</td><td>query, insert, filter with a parameter, order</td></tr>
+<tr><td>Working against the engine</td><td>query, insert, filter with a parameter, order — and now the whole model suite: row values, arrays, JSON, window functions, set operations, transactions</td></tr>
+<tr><td>Provider coverage</td><td><b>823 of 1014 lines, 81.16%</b>, measured by the model suite; the threshold lives in <code>tools/CheckCoverage.ps1</code> and only goes up</td></tr>
 </table>
-<p class="sub">The ten red are port defects, listed below. Before identity columns there were fifteen — and the engine has since closed five more: identity DDL, the identity value read back through <code>FINAL TABLE</code>, sequences, the <code>AS</code> of a table alias, and the derived table.</p>
+<p class="sub">The suite was 68 green + 10 red a week ago; the engine closed every gap but one. The ten red were port defects — identity DDL, the identity value through <code>FINAL TABLE</code>, sequences, the <code>AS</code> of a table alias, the derived table, <code>EXISTS</code>, arrays as parameters, window functions, <code>INTERSECT</code>/<code>EXCEPT</code>, <code>WITHIN GROUP</code>/<code>FILTER</code> — and all of them read now.</p>
 
 <h3 id="types">Types are H2's</h3>
 <table class="ref">
@@ -56,7 +57,7 @@
 <tr><td><code>TimeSpan</code></td><td><code>time</code></td><td><code>int[]</code></td><td><code>integer ARRAY</code></td></tr>
 </table>
 <p class="sub">The name of an array is the name of the type of its elements and the word <code>ARRAY</code> after it — <code>integer ARRAY</code>, <code>varchar ARRAY</code>. H2 does not know the brackets of PostgreSQL (<code>integer[]</code>). The mapping schema knows the array types, so the name does not have to be said by hand; it can still be, for a type the schema does not know.</p>
-<p class="sub">H2's functions for an array are <code>H2SharpSpecificExtensions.ArrayAppend</code>, <code>ArrayCat</code>, <code>ArrayContains</code>, <code>Cardinality</code> and <code>ArrayLength</code> — the functions of H2 2.5: <code>ARRAY_APPEND</code>, <code>ARRAY_CAT</code>, <code>ARRAY_CONTAINS</code>, <code>CARDINALITY</code> and <code>ARRAY_LENGTH</code>. The engine does not read the type <code>ARRAY</code> yet, so a table with such a column cannot be created.</p>
+<p class="sub">H2's functions for an array are <code>H2SharpSpecificExtensions.ArrayAppend</code>, <code>ArrayCat</code>, <code>ArrayContains</code>, <code>Cardinality</code> and <code>ArrayLength</code> — the functions of H2 2.5: <code>ARRAY_APPEND</code>, <code>ARRAY_CAT</code>, <code>ARRAY_CONTAINS</code>, <code>CARDINALITY</code> and <code>ARRAY_LENGTH</code>. The engine reads the <code>ARRAY</code> type, its literals, the functions and <code>UNNEST</code> now, so a table with such a column works end to end.</p>
 
 <h3 id="generates">What it generates</h3>
 <table class="ref">
@@ -65,9 +66,9 @@
 <tr><td>Types</td><td>H2's own: <code>varchar</code>, <code>char</code>, <code>numeric</code>, <code>varbinary</code>, <code>uuid</code>, <code>json</code>, <code>clob</code>, <code>blob</code>, <code>timestamp</code>, <code>time</code>, <code>boolean</code>, <code>smallint</code>, <code>integer</code>, <code>bigint</code>, <code>real</code>, <code>double</code></td></tr>
 <tr><td>Paging</td><td><code>LIMIT n</code> / <code>OFFSET n</code>, with the count as a parameter</td></tr>
 <tr><td>Concatenation</td><td><code>CONCAT</code>, which H2 has</td></tr>
-<tr><td>Parameters</td><td>named <code>@name</code>, which the engine rewrites into <code>?</code> before the statement is parsed</td></tr>
-<tr><td>Table alias</td><td>without the <code>AS</code>: the grammar allows both spellings, and this is the one the engine reads</td></tr>
-<tr><td>Type cast</td><td><code>CAST(x AS y)</code> — the shorter <code>x::y</code> is PostgreSQL's, and H2 2.5 does not have it</td></tr>
+<tr><td>Parameters</td><td>named <code>$name</code> (case-sensitive), which the ADO layer rewrites into <code>$N</code> before the statement is parsed — <code>@name</code> is an H2 session variable and <code>:name</code> plain syntax, neither is a parameter</td></tr>
+<tr><td>Table alias</td><td>without the <code>AS</code>: the grammar allows both spellings, and the bare one is the shorter</td></tr>
+<tr><td>Type cast</td><td><code>CAST(x AS y)</code> — H2 2.5 also reads the PostgreSQL-style <code>x::y</code> and the port does too, but the provider writes the standard form</td></tr>
 </table>
 
 <h3 id="context">The data context</h3>

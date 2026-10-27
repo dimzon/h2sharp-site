@@ -12,8 +12,8 @@
 <p class="sub">The ADO.NET layer works today and is gated by a real conformance suite; the Entity Framework Core and linq2db providers are separate projects, already in progress. No invented signatures — every section reflects what is in the repositories.</p>
 <div class="grid">
 <div class="card"><h3>System.Data <span class="badge ok">available</span></h3><p>H2Connection, H2Command, H2Parameter, H2DataReader, H2Transaction, H2DataAdapter, H2ProviderFactory. 293/293 of the ADO.NET spec suite.</p><a class="go" href="system-data.html">Reference →</a></div>
-<div class="card"><h3>EF Core <span class="badge ok">in progress</span></h3><p>Own repository: a fork of EFCore.PG with H2's surface. 1221 inherited EF Core tests pass, none red.</p><a class="go" href="efcore.html">Details →</a></div>
-<div class="card"><h3>linq2db <span class="badge ok">in progress</span></h3><p>Own repository, written from scratch against linq2db's public API. 68 provider tests and 108 forum-model tests green.</p><a class="go" href="linq2db.html">Details →</a></div>
+<div class="card"><h3>EF Core <span class="badge ok">in progress</span></h3><p>Own repository: a fork of EFCore.PG with H2's surface. Green gate: 5742 functional EF Core tests pass, model suite 316 of 317.</p><a class="go" href="efcore.html">Details →</a></div>
+<div class="card"><h3>linq2db <span class="badge ok">in progress</span></h3><p>Own repository, written from scratch against linq2db's public API. 76 provider and 180 forum-model tests green — one blocked test left.</p><a class="go" href="linq2db.html">Details →</a></div>
 <div class="card"><h3>Native API <span class="badge plan">planned</span></h3><p>Direct engine access. The engine executes real queries now; a public surface is not promised yet.</p><a class="go" href="native.html">Stub →</a></div>
 </div>
 

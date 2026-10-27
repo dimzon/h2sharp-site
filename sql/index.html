@@ -16,7 +16,7 @@
 <section class="block">
 <h2 id="top">SQL reference (H2 mirror)</h2>
 <p class="sub">H2Sharp's own design over H2 content. Anchors are stable: <code>#commands</code>, <code>#functions</code>, <code>#datatypes</code>, <code>#grammar</code>, <code>#systemtables</code> — deep links survive a site move.</p>
-<div class="version-banner"><b>This is H2's full grammar, not the engine's capabilities.</b> The pages below mirror what the port is written against; the engine executes a subset today (no <code>JOIN</code>, subqueries, window functions or <code>MERGE</code> yet). See <a href="../status/">port status</a> for what actually runs.</div>
+<div class="version-banner"><b>This is H2's full grammar, not the engine's capabilities.</b> The pages below mirror what the port is written against; the engine reads most of it today — <code>JOIN</code>, subqueries, window functions, <code>MERGE</code>, views, arrays, JSON, file databases — while rights and privileges, triggers and a few DDL families still refuse. See <a href="../status/">port status</a> for what actually runs.</div>
 <div class="version-banner"><b>Verified against the project's own copy.</b> The main repo commits the same 8 files in <code>docs/</code> with a SHA-256 manifest, and its conformance suite cites <i>line numbers</i> in them — a drift would break tests. Our mirror is byte-identical, all 8 files; check with <code>python tools/verify-snapshot.py</code>.</div>
 <div class="grid" id="commands">
 <div class="card"><h3>Commands <span class="badge ok">mirror</span></h3><p>SELECT · INSERT · UPDATE · DELETE · MERGE · DDL · SET · SCRIPT…</p><a class="go" href="ref/commands.html">Open →</a></div>
