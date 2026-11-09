@@ -1,0 +1,76 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>H2Sharp.Shell — H2Sharp</title><link rel="icon" type="image/svg+xml" href="../assets/favicon.svg"><link rel="stylesheet" href="../assets/site.css"></head><body>
+<header class="site-header"><div class="wrap"><a class="brand" href="../" style="text-decoration:none"><img src="../assets/logo.svg" alt="">H2Sharp <small>in progress</small></a><nav class="main"><a href="../">Home</a><a href="../sql/">SQL</a><a href="./" class="active">.NET API</a><a href="../status/">Status</a></nav></div></header>
+<main class="wrap"><section class="block">
+<h2>H2Sharp.Shell <span class="badge ok">client</span></h2>
+<p class="sub">A console SQL client over the engine, in the style of <code>sqlite3</code>. It runs SQL from the command line or interactively, against an in-memory or a file database. Source: <code>tools/H2Sharp.Shell</code> in the engine repository.</p>
+
+<h3 id="build">Build and run</h3>
+<pre class="mini"><code>dotnet build tools/H2Sharp.Shell/H2Sharp.Shell.csproj
+dotnet run --project tools/H2Sharp.Shell -- [options] [dataSource]</code></pre>
+<p class="sub">After publishing, the executable is <code>H2Sharp.Shell</code>. The default data source is <code>test</code>, storage <code>File</code>.</p>
+
+<h3 id="options">Options</h3>
+<table class="ref">
+<tr><th>Option</th><th>Description</th></tr>
+<tr><td><code>-cs, --connection-string</code></td><td>Full H2Sharp connection string.</td></tr>
+<tr><td><code>-d, --data-source</code></td><td>Database file path or in-memory key.</td></tr>
+<tr><td><code>--storage Memory|File</code></td><td>Storage kind. Default: <code>File</code>.</td></tr>
+<tr><td><code>-sql, --sql</code></td><td>Execute SQL statements and exit.</td></tr>
+<tr><td><code>-list, --list</code></td><td>Enable result list mode.</td></tr>
+<tr><td><code>-h, --help, -?</code></td><td>Show help.</td></tr>
+</table>
+<p class="sub">A positional argument is treated as the data source when no connection string is given.</p>
+
+<h3 id="commands">Interactive commands</h3>
+<p class="sub">SQL statements must end with <code>;</code>. Commands are case-insensitive.</p>
+<table class="ref">
+<tr><th>Command</th><th>Description</th></tr>
+<tr><td><code>help, ?</code></td><td>Show help.</td></tr>
+<tr><td><code>list</code></td><td>Toggle table/list result mode.</td></tr>
+<tr><td><code>maxwidth &lt;n&gt;</code></td><td>Set maximum column width. Default: 100.</td></tr>
+<tr><td><code>history</code></td><td>Show last 20 statements.</td></tr>
+<tr><td><code>&lt;number&gt;</code></td><td>Re-run a statement from history.</td></tr>
+<tr><td><code>exit, quit</code></td><td>Close connection and exit.</td></tr>
+</table>
+
+<h3 id="examples">Examples</h3>
+<pre class="mini"><code><span class="tok-c"># one query</span>
+dotnet run --project tools/H2Sharp.Shell -- -sql "SELECT 1"
+
+<span class="tok-c"># several statements</span>
+dotnet run --project tools/H2Sharp.Shell -- -sql "CREATE TABLE t(a INT); INSERT INTO t VALUES (1),(2); SELECT * FROM t;"
+
+<span class="tok-c"># file database</span>
+dotnet run --project tools/H2Sharp.Shell -- test.db
+
+<span class="tok-c"># in-memory database</span>
+dotnet run --project tools/H2Sharp.Shell -- -d shell --storage Memory -sql "SELECT 1"
+
+<span class="tok-c"># full connection string</span>
+dotnet run --project tools/H2Sharp.Shell -- -cs "Data Source=demo;Storage=Memory" -sql "SELECT 1"</code></pre>
+
+<pre class="mini"><code><span class="tok-c"># interactive session</span>
+$ dotnet run --project tools/H2Sharp.Shell
+sql&gt; SELECT 1 AS x;
+X
+1
+(1 row, 12 ms)
+sql&gt; list
+Result list mode is now on
+sql&gt; SELECT 1 AS x, 2 AS y;
+X: 1
+Y: 2
+(1 row, 8 ms)
+sql&gt; history
+#1: SELECT 1 AS x, 2 AS y;
+#2: SELECT 1 AS x;
+sql&gt; 2
+SELECT 1 AS x;
+X
+1
+(1 row, 5 ms)
+sql&gt; exit
+Connection closed</code></pre>
+</section></main>
+<footer><div class="wrap"><span>H2Sharp · Shell client</span><span style="margin-left:auto"><a href="./">← .NET API</a></span></div></footer>
+</body></html>
