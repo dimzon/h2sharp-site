@@ -79,7 +79,7 @@
 <table class="ref">
 <tr><th>Gap</th><th>Symptom</th></tr>
 <tr><td>A catalogue column without a collation</td><td>the <code>collation</code> column is empty where H2 2.5 gives the collation of the database; the catalogue's name is now the database's name</td></tr>
-<tr><td><code>DB_CLOSE_DELAY</code> and a file database</td><td>the store itself is in the port and its format is H2 2.5-compatible, but a session does not open a file database — and a pooled connection takes the database with it</td></tr>
+<tr><td><code>DB_CLOSE_DELAY</code> on a bare connection</td><td>file databases open now and a data source owns its database with close delay <code>-1</code>; a bare connection still drops its database on close</td></tr>
 <tr><td>The engine's catalogue from the ADO layer</td><td><code>H2Connection.Session</code> is <code>internal</code>, while the schema's table list wants a <code>SessionLocal</code></td></tr>
 </table>
 

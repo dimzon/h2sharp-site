@@ -74,8 +74,8 @@ EF.Functions.LeftPad(blog.Name, 10, <span class="tok-s">"0"</span>)        <span
 <table class="ref">
 <tr><th>Gap</th><th>Symptom</th></tr>
 <tr><td>A joined update reduced to a subquery</td><td>the model suite's one red: the provider writes a correlated <code>EXISTS</code> for the update and the port refuses the form</td></tr>
-<tr><td><code>ALTER TABLE</code> beyond <code>ADD</code>/<code>RENAME TO</code></td><td><code>DROP COLUMN</code> and the remaining actions — a small family of tests</td></tr>
-<tr><td><code>CREATE TYPE … AS ENUM</code>, <code>COMMENT ON</code>, <code>INCLUDE</code> indexes</td><td>the migrations the suite asks for</td></tr>
+<tr><td><code>ALTER TABLE</code> tails</td><td><code>DROP COLUMN</code> and <code>RENAME CONSTRAINT</code> are in; a few forms remain</td></tr>
+<tr><td><code>INCLUDE</code> indexes</td><td>the migrations the suite asks for; <code>CREATE TYPE</code>/<code>ALTER TYPE ADD VALUE</code> and <code>COMMENT ON</code> are in</td></tr>
 <tr><td>A second transaction per connection</td><td>the ADO layer refuses one; sixty tests of the transaction family wait</td></tr>
 </table>
 <p class="sub">The big one is gone: <code>Prepared.update</code> — the statement-update path 3892 functional tests waited on — is read now (issue #67, engine commit <code>cf5e363</code>), and the green gate jumped by thousands in a day. <code>CREATE SCHEMA</code> and the derived table, the older blockers of scaffolding and paging, are in the engine too.</p>
