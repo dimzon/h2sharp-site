@@ -45,9 +45,17 @@ con.Open();
 <span class="tok-k">await using var</span> con = <span class="tok-k">new</span> H2Connection(<span class="tok-s">"Data Source=mem:mydb;Storage=Memory"</span>);</code></pre>
 
 <h3 id="transactions">Transactions</h3>
-<pre class="mini"><code><span class="tok-k">using var</span> tx = con.BeginTransaction();
+<pre class="mini"><code><span class="tok-c">// explicit transaction</span>
+<span class="tok-k">using var</span> tx = con.BeginTransaction();
 con.Execute(<span class="tok-s">"INSERT INTO PERSON VALUES($Id, $Name)"</span>, <span class="tok-k">new</span> { Id = 2, Name = <span class="tok-s">"Grace"</span> });
-tx.Commit();  <span class="tok-c">// or tx.Rollback()</span></code></pre>
+tx.Commit();  <span class="tok-c">// or tx.Rollback()</span>
+
+<span class="tok-c">// ambient transaction (TransactionScope / System.Transactions)</span>
+<span class="tok-k">using var</span> scope = <span class="tok-k">new</span> TransactionScope();
+con.EnlistTransaction(Transaction.Current);
+con.Execute(<span class="tok-s">"INSERT INTO PERSON VALUES($Id, $Name)"</span>, <span class="tok-k">new</span> { Id = 3, Name = <span class="tok-s">"Ada"</span> });
+scope.Complete();</code></pre>
+<p class="sub"><code>EnlistTransaction</code> switches the session out of auto-commit; the engine transaction is kept by the enlistment until the ambient transaction completes, so the connection may be closed before it commits. A second transaction on the same connection is refused.</p>
 
 <h3 id="parameters">Named parameters</h3>
 <p class="sub">A named parameter is spelled <code>$name</code>, and the name matches case-sensitively — <code>$Id</code> and <code>$id</code> are different parameters. The rewrite lives in the command layer: the text the engine sees carries <code>?</code>, <code>?N</code> and <code>$N</code>, with <code>$name</code> resolved to its index before the statement is prepared. Two spellings are deliberately <b>not</b> parameters: <code>@name</code> is H2's session variable and <code>:name</code> is plain SQL syntax (including <code>JSON_OBJECT(k : v)</code>). Dapper understands <code>$</code> out of the box.</p>
