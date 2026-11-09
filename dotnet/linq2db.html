@@ -22,12 +22,12 @@
 <p class="sub">The engine's ADO layer takes a JDBC URL; the .NET world spells the same thing <code>Data Source=mem:mydb</code>. Both are accepted, and the translation is one call if you want to see it:</p>
 <table class="ref">
 <tr><th>What is written</th><th>What the engine opens</th></tr>
-<tr><td><code>jdbc:h2:mem:mydb</code></td><td><code>jdbc:h2:mem:mydb</code></td></tr>
-<tr><td><code>Data Source=mem:mydb</code></td><td><code>jdbc:h2:mem:mydb</code></td></tr>
-<tr><td><code>Data Source=mem:mydb;MODE=PostgreSQL</code></td><td><code>jdbc:h2:mem:mydb;mode=PostgreSQL</code></td></tr>
+<tr><td><code>Data Source=mem:mydb;Storage=Memory</code></td><td>an in-memory database keyed <code>mydb</code></td></tr>
+<tr><td><code>Data Source=file.db;Storage=File</code></td><td>the file database <code>file.db</code> in the reference H2 format</td></tr>
+<tr><td><code>Data Source=mem:mydb;Storage=Memory;MODE=PostgreSQL</code></td><td>the same database in PostgreSQL compatibility mode</td></tr>
 </table>
 <pre class="mini"><code><span class="tok-k">var</span> url = H2SharpConnectionString.ToUrl(<span class="tok-s">"Data Source=mem:mydb;MODE=PostgreSQL"</span>);
-// jdbc:h2:mem:mydb;mode=PostgreSQL</code></pre>
+// Data Source=mem:mydb;Storage=Memory;MODE=PostgreSQL</code></pre>
 
 <h3 id="state">State</h3>
 <table class="ref">

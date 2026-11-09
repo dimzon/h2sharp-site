@@ -73,7 +73,7 @@
       <div><p class="sub">A real query today, through Dapper over <code>IDbConnection</code>:</p>
 <pre class="mini"><code><span class="tok-k">using</span> H2Sharp.Data;
 
-<span class="tok-k">using</span> IDbConnection con = <span class="tok-k">new</span> H2Connection(<span class="tok-s">"jdbc:h2:mem:demo"</span>);
+<span class="tok-k">using</span> IDbConnection con = <span class="tok-k">new</span> H2Connection(<span class="tok-s">"Data Source=mem:demo;Storage=Memory"</span>);
 con.Open();
 con.Execute(<span class="tok-s">"CREATE TABLE PERSON(ID INT PRIMARY KEY, NAME VARCHAR)"</span>);
 con.Execute(<span class="tok-s">"INSERT INTO PERSON VALUES($Id, $Name)"</span>, <span class="tok-k">new</span> { Id = 1, Name = <span class="tok-s">"Ada"</span> });

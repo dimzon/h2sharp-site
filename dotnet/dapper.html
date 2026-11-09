@@ -30,7 +30,7 @@ con.Execute(<span class="tok-s">"DELETE FROM PERSON WHERE ID = $Id"</span>, <spa
 <ul>
 <li><b>Read after write.</b> The select is repeated after the update — an update that reports one row and leaves the old value behind is exactly the bug a smoke test exists to catch, and a single select would miss it.</li>
 <li><b>Scalar is a separate path.</b> Dapper's single-value path differs from materialisation; a provider that answers the first and not the second is common, so both are exercised.</li>
-<li><b>H2 spelling on purpose.</b> The flow uses <code>jdbc:h2:mem:…</code> rather than <code>Data Source=…</code> — that is the form that needs parsing. A <code>Data Source</code> test would pass on a provider that took the text and looked at none of it.</li>
+<li><b>Classic ADO.NET spelling.</b> The flow uses <code>Data Source=mem:demo;Storage=Memory</code>; <code>jdbc:h2:</code> is no longer accepted by <code>H2Connection</code> — the JDBC form lives only in the test infrastructure for the Java oracle.</li>
 <li><b>Not written against its own members.</b> Nothing here touches <code>H2Connection</code> beyond handing it to Dapper.</li>
 </ul>
 

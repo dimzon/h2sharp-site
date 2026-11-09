@@ -22,16 +22,27 @@
 </table>
 
 <h3 id="connection-strings">Connection strings</h3>
-<p class="sub">Both spellings are accepted, because a caller will use whichever their code base already has. The <code>jdbc:h2:</code> prefix is stripped and not re-added, so <code>Data Source=mem:x</code> and <code>Data Source=jdbc:h2:mem:x</code> open the same database — the name itself is kept byte for byte, because the name decides which database is opened.</p>
-<pre class="mini"><code>Data Source=mem:mydb                       <span class="tok-c">// ADO.NET spelling</span>
-Data Source=jdbc:h2:mem:mydb              <span class="tok-c">// H2 spelling, same database</span>
+<p class="sub">The classic ADO.NET spelling — <code>jdbc:h2:</code> is no longer accepted by <code>H2Connection</code> (it lives only in the test infrastructure for the Java oracle). Unknown keys and credentials (<code>USER</code>/<code>PASSWORD</code>/<code>User ID</code>/<code>Password</code>) are rejected rather than ignored.</p>
+<pre class="mini"><code>Data Source=mem:mydb;Storage=Memory            <span class="tok-c">// in-memory database keyed "mydb"</span>
+Data Source=file.db;Storage=File;Mode=Regular   <span class="tok-c">// file database in the reference H2 format</span>
+Storage=Memory                                 <span class="tok-c">// unnamed in-memory database</span></code></pre>
+<p class="sub"><code>H2ConnectionStringBuilder</code> parses the classic string into a typed <code>ConnectionInfo</code> (<code>StorageKind</code>, <code>DataSource</code>, <code>Mode</code>, <code>ConnectionOptions</code>); <code>ToConnectionInfo()</code> and <code>LoadFrom()</code> are the two conversion points.</p>
 
-<span class="tok-k">new</span> H2ConnectionStringBuilder(<span class="tok-s">"jdbc:h2:mem:mydb"</span>).ToH2ConnectionString()</code></pre>
+<h3 id="datasource">Recommended: H2DataSource (DbDataSource)</h3>
+<p class="sub">A data source owns the database: it creates it on first open, keeps it alive while the data source lives (close delay <code>-1</code>), and hands out connections that share it. Raw <code>H2Connection</code> instances are self-contained and close their own database. Prefer the data source for pooling, triggers, trace and event listeners.</p>
+<pre class="mini"><code><span class="tok-k">var</span> ds = H2ProviderFactory.Instance.CreateDataSource(<span class="tok-s">"Data Source=mem:mydb;Storage=Memory"</span>);
+<span class="tok-k">await using var</span> con = ds.CreateConnection();
+con.Open();
+
+<span class="tok-c">// or build it by hand:</span>
+<span class="tok-k">var</span> ds2 = <span class="tok-k">new</span> H2DataSourceBuilder(<span class="tok-s">"Data Source=mem:mydb;Storage=Memory"</span>)
+    .ConfigureExtensions(e =&gt; e.RegisterUdf(...))
+    .Build();</code></pre>
 
 <h3 id="di">Registration</h3>
 <pre class="mini"><code>services.AddDbConnectionFactory&lt;H2ProviderFactory&gt;(_ =&gt; <span class="tok-k">new</span> H2ProviderFactory());
 <span class="tok-c">// or construct directly:</span>
-<span class="tok-k">await using var</span> con = <span class="tok-k">new</span> H2Connection(<span class="tok-s">"jdbc:h2:mem:mydb"</span>);</code></pre>
+<span class="tok-k">await using var</span> con = <span class="tok-k">new</span> H2Connection(<span class="tok-s">"Data Source=mem:mydb;Storage=Memory"</span>);</code></pre>
 
 <h3 id="transactions">Transactions</h3>
 <pre class="mini"><code><span class="tok-k">using var</span> tx = con.BeginTransaction();
