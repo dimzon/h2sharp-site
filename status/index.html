@@ -70,7 +70,7 @@
 <li>DDL families still to port: triggers, materialized views, linked tables, constants, <code>RUNSCRIPT</code>/<code>BACKUP</code>, <code>EXECUTE IMMEDIATE</code>.</li>
 <li>Reading a <code>CHARACTER LARGE OBJECT</code> back out of a <i>table row</i>: the storage is there and memory lobs read fine, but a lob tied to a table refuses in <code>ValueLob.CopyToResult</code>.</li>
 <li><code>ALTER TABLE</code> tails — <code>DROP COLUMN</code> and <code>RENAME</code> forms — and <code>COMMENT ON</code> beyond the basics.</li>
-<li><code>DB_CLOSE_DELAY</code>: an in-memory database is dropped when its last connection closes, so a pooled data context cannot put it down and pick it up later.</li>
+<li><code>DB_CLOSE_DELAY</code>: works through <code>SET DB_CLOSE_DELAY</code>; a data source owns its database with close delay <code>-1</code>, but a bare connection still drops its database on close.</li>
 <li>File databases: <code>CIPHER</code> encryption and the <code>INIT</code> runscript refuse; the plain open, the format and the locking are in.</li>
 <li>One catalogue divergence: the <code>collation</code> column is empty where H2 2.5 gives the collation of the database.</li>
 <li>A second transaction on one connection — the ADO layer refuses it; the EF Core transaction family waits.</li>

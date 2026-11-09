@@ -42,15 +42,15 @@ tx.Commit();  <span class="tok-c">// or tx.Rollback()</span></code></pre>
 <p class="sub">A named parameter is spelled <code>$name</code>, and the name matches case-sensitively — <code>$Id</code> and <code>$id</code> are different parameters. The rewrite lives in the command layer: the text the engine sees carries <code>?</code>, <code>?N</code> and <code>$N</code>, with <code>$name</code> resolved to its index before the statement is prepared. Two spellings are deliberately <b>not</b> parameters: <code>@name</code> is H2's session variable and <code>:name</code> is plain SQL syntax (including <code>JSON_OBJECT(k : v)</code>). Dapper understands <code>$</code> out of the box.</p>
 
 <h3 id="not-yet">Not implemented yet</h3>
-<p class="sub">Honest list — these throw <code>TODOException</code> or are absent, by design at this stage:</p>
+<p class="sub">Honest list — these throw or are absent, by design at this stage:</p>
 <ul>
-<li><code>ChangeDatabase</code> — throws <code>TODOException</code>.</li>
-<li>Connection-level <code>GetSchema()</code> over <code>INFORMATION_SCHEMA</code> — not there yet. (<code>H2DataReader.GetSchemaTable()</code> is a different thing and does work.)</li>
+<li><code>ChangeDatabase</code> — not supported: the database is named by the connection string at open.</li>
 <li>Async <code>OpenAsync</code> — it completes synchronously; file opens do I/O, and then it becomes truly asynchronous.</li>
-<li><code>DB_CLOSE_DELAY</code> — an in-memory database is dropped when its last connection closes, so a pooled connection cannot put it down and pick it up later.</li>
-<li>No batches — <code>CanCreateBatch</code> is <code>false</code>.</li>
+<li><code>DB_CLOSE_DELAY</code> — <code>SET DB_CLOSE_DELAY</code> works, and a data source owns its database with close delay <code>-1</code> so it outlives a connection; a bare connection still drops its database on close.</li>
+<li><code>H2CommandBuilder</code> refuses command generation — it needs the schema machinery behind <code>GetInsertCommand</code> and friends; <code>H2DataAdapter.Update</code> needs commands supplied by hand.</li>
 <li>No data-source enumerator — <code>CanCreateDataSourceEnumerator</code> is <code>false</code>.</li>
 </ul>
+<p class="sub"><code>GetSchema()</code> over <code>INFORMATION_SCHEMA</code> is implemented (<code>MetaDataCollections</code>, <code>Tables</code>, <code>Columns</code>, <code>…</code>), and <code>CanCreateBatch</code> is <code>true</code> (<code>H2Batch</code>). <code>H2DataReader.GetSchemaTable()</code> works too.</p>
 
 <p class="sub">See also <a href="dapper.html">Dapper</a> for the live end-to-end flow, and <a href="../status/">port status</a> for phases.</p>
 </section></main>
