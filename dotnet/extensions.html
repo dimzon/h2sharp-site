@@ -1,0 +1,41 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Extensions — H2Sharp</title><link rel="icon" type="image/svg+xml" href="../assets/favicon.svg"><link rel="stylesheet" href="../assets/site.css"></head><body>
+<header class="site-header"><div class="wrap"><a class="brand" href="../" style="text-decoration:none"><img src="../assets/logo.svg" alt="">H2Sharp <small>in progress</small></a><nav class="main"><a href="../">Home</a><a href="../sql/">SQL</a><a href="./" class="active">.NET API</a><a href="../status/">Status</a></nav></div></header>
+<main class="wrap"><section class="block">
+<h2>Extensions <span class="badge ok">available</span></h2>
+<p class="sub">The host-side extension surface: scalar UDFs, user-defined aggregates, hash algorithms, triggers, random and UUID generators. Registration happens on a closed connection (or a data source) before it is opened; opening takes an immutable snapshot, so an active session is never reconfigured. This is the .NET extension surface, not SQL <code>CREATE ALIAS</code> — the embedded engine stores no executable code (D-037).</p>
+
+<h3 id="udf">Scalar UDFs</h3>
+<pre class="mini"><code><span class="tok-k">using var</span> con = <span class="tok-k">new</span> H2Connection(<span class="tok-s">"Data Source=mem:demo;Storage=Memory"</span>);
+((IH2Extensions)con).RegisterUdf&lt;<span class="tok-t">int</span>, <span class="tok-t">int</span>&gt;(<span class="tok-s">"DOUBLE_IT"</span>, x =&gt; x * 2, deterministic: <span class="tok-k">true</span>);
+con.Open();
+<span class="tok-k">int</span> v = con.QuerySingle&lt;<span class="tok-t">int</span>&gt;(<span class="tok-s">"SELECT DOUBLE_IT(21)"</span>);  <span class="tok-c">// 42</span></code></pre>
+<p class="sub"><code>RegisterUdf</code> is provided for 0–4 arguments. The CLR types must have an SQL value mapping; <code>RegisterHashAlgorithm</code> registers a factory returning a fresh <code>HashAlgorithm</code> per call.</p>
+
+<h3 id="aggregates">User-defined aggregates</h3>
+<pre class="mini"><code>((IH2Extensions)con).RegisterAggregate(<span class="tok-s">"MY_SUM"</span>, <span class="tok-k">new</span> MyAggregateProvider());
+con.Open();
+<span class="tok-k">var</span> rows = con.Query&lt;<span class="tok-t">int</span>&gt;(<span class="tok-s">"SELECT MY_SUM(x) FROM T"</span>);</code></pre>
+<p class="sub">Public types: <code>IH2Aggregate</code>, <code>IH2AggregateProvider</code>, <code>AggregateProvider</code>, <code>AggregateProvider&lt;T&gt;</code>, <code>IH2MergeableAggregate</code>, <code>AggregateBase</code>, <code>CollectingAggregateBase</code>, <code>AggregateOptions</code>. <code>DISTINCT</code>, <code>FILTER</code> and <code>OVER</code> go through the standard aggregate machinery. The package <code>H2Sharp.Extensions</code> ships ready-made aggregates — <code>H2_STRING_AGG</code>, <code>H2_GEOMETRIC_MEAN</code>, <code>H2_PRODUCT</code>, <code>H2_HARMONIC_MEAN</code>, <code>H2_WEIGHTED_AVERAGE</code>, <code>H2_COUNT_IF</code> — registered with <code>RegisterH2Aggregates()</code>.</p>
+
+<h3 id="hashes">Hash algorithms and optional providers</h3>
+<pre class="mini"><code>((IH2Extensions)con).RegisterHashAlgorithm(<span class="tok-s">"MY_HASH"</span>, () =&gt; SHA256.Create());
+con.Open();
+<span class="tok-k">var</span> h = con.QuerySingle&lt;<span class="tok-t">byte</span>[]&gt;(<span class="tok-s">"SELECT HASH('MY_HASH', 'abc')"</span>);</code></pre>
+<p class="sub">BCL algorithms (MD5, SHA-1, SHA-256/384/512, SHA3-256/384/512) are registered automatically. Optional packages add more: <code>H2Sharp.Hashes</code> (SHA-224, BLAKE2/3, Keccak, … via <code>UseH2Hashes()</code>), <code>H2Sharp.Crypto</code> (AES/XTEA/FOG for <code>ENCRYPT</code>/<code>DECRYPT</code> via <code>UseCrypto()</code>), <code>H2Sharp.JavaLegacy</code> (JDK <code>RAND</code> sequence and <code>ORA_HASH</code> via <code>UseJavaLegacy()</code>). UUID v4 uses <code>Guid.NewGuid</code>, v7 uses <code>Guid.CreateVersion7</code> on .NET 9+.</p>
+
+<h3 id="triggers">Triggers</h3>
+<pre class="mini"><code><span class="tok-k">var</span> ds = H2ProviderFactory.Instance.CreateDataSource(<span class="tok-s">"Data Source=mem:demo;Storage=Memory"</span>);
+ds.RegisterTrigger(<span class="tok-s">"TRG"</span>,
+    (schema, table) =&gt; table == <span class="tok-s">"PERSON"</span>,
+    H2TriggerEvent.Insert | H2TriggerEvent.Update,
+    before: <span class="tok-k">false</span>, rowBased: <span class="tok-k">true</span>,
+    factory: () =&gt; <span class="tok-k">new</span> MyTrigger());
+<span class="tok-k">await using var</span> con = ds.CreateConnection();</code></pre>
+<p class="sub">Triggers are database-wide and apply now and after the database is opened; they are registered on the data source, not through SQL <code>CREATE TRIGGER</code> (which is not ported). The predicate receives the raw stored schema and table names.</p>
+
+<h3 id="random-uuid">Random and UUID generators</h3>
+<pre class="mini"><code>((IH2Extensions)con).RegisterRandomGenerator(seed =&gt; <span class="tok-k">new</span> Random((<span class="tok-t">int</span>)seed));
+((IH2Extensions)con).RegisterUuidGenerator(version =&gt; Guid.NewGuid());</code></pre>
+</section></main>
+<footer><div class="wrap"><span>H2Sharp · Extensions</span><span style="margin-left:auto"><a href="./">← .NET API</a></span></div></footer>
+</body></html>
